@@ -44,8 +44,6 @@
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
-SPI_HandleTypeDef hspi1;
-
 TIM_HandleTypeDef htim1;
 
 /* USER CODE BEGIN PV */
@@ -56,7 +54,6 @@ TIM_HandleTypeDef htim1;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_SPI1_Init(void);
 static void MX_TIM1_Init(void);
 
 /* USER CODE BEGIN PFP */
@@ -93,7 +90,6 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_SPI1_Init();
   MX_TIM1_Init();
 
   /* USER CODE BEGIN 2 */
@@ -160,29 +156,6 @@ void SystemClock_Config(void)
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
-/* SPI1 init function */
-static void MX_SPI1_Init(void)
-{
-
-  hspi1.Instance = SPI1;
-  hspi1.Init.Mode = SPI_MODE_MASTER;
-  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
-  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
-  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi1.Init.CRCPolynomial = 10;
-  if (HAL_SPI_Init(&hspi1) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-}
-
 /* TIM1 init function */
 static void MX_TIM1_Init(void)
 {
@@ -191,10 +164,10 @@ static void MX_TIM1_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 0;
+  htim1.Init.Prescaler = 16;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 0;
-  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.Period = 1000;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV4;
   htim1.Init.RepetitionCounter = 0;
   if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
   {
@@ -216,13 +189,100 @@ static void MX_TIM1_Init(void)
 
 }
 
-/** Pinout Configuration
+/** Configure pins as 
+        * Analog 
+        * Input 
+        * Output
+        * EVENT_OUT
+        * EXTI
+     PB13   ------> SPI2_SCK
+     PB14   ------> SPI2_MISO
+     PB15   ------> SPI2_MOSI
 */
 static void MX_GPIO_Init(void)
 {
 
+  GPIO_InitTypeDef GPIO_InitStruct;
+
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, V1_Pin|V2_Pin|V3_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, beep_Pin|power_enable_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, led1_Pin|led2_Pin|led3_Pin|led4_Pin 
+                          |led5_Pin|rf_cs_Pin|g_Pin|f_Pin 
+                          |e_Pin|d_Pin|c_Pin|b_Pin 
+                          |a_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, rf_ce_Pin|h_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pins : V1_Pin V2_Pin V3_Pin */
+  GPIO_InitStruct.Pin = V1_Pin|V2_Pin|V3_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : H1_Pin H2_Pin H3_Pin H4_Pin 
+                           H5_Pin H6_Pin H7_Pin power_btn_Pin */
+  GPIO_InitStruct.Pin = H1_Pin|H2_Pin|H3_Pin|H4_Pin 
+                          |H5_Pin|H6_Pin|H7_Pin|power_btn_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : beep_Pin power_enable_Pin */
+  GPIO_InitStruct.Pin = beep_Pin|power_enable_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : led1_Pin led2_Pin led3_Pin led4_Pin 
+                           led5_Pin rf_cs_Pin */
+  GPIO_InitStruct.Pin = led1_Pin|led2_Pin|led3_Pin|led4_Pin 
+                          |led5_Pin|rf_cs_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PB13 PB14 PB15 */
+  GPIO_InitStruct.Pin = GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : rf_irq_Pin */
+  GPIO_InitStruct.Pin = rf_irq_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(rf_irq_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : rf_ce_Pin */
+  GPIO_InitStruct.Pin = rf_ce_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(rf_ce_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : h_Pin */
+  GPIO_InitStruct.Pin = h_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(h_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : g_Pin f_Pin e_Pin d_Pin 
+                           c_Pin b_Pin a_Pin */
+  GPIO_InitStruct.Pin = g_Pin|f_Pin|e_Pin|d_Pin 
+                          |c_Pin|b_Pin|a_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 }
 
