@@ -1,22 +1,22 @@
-"E:\嵌入式工程\遥控器控制器电机\ctrl\USER\main.c"
+"E:\嵌入式工程\遥控器控制器电机\ctrl_motor_and_handset\ctrl\USER\main.c"
 -std=c99
 -ferror-limit=0
 -I
-E:\嵌入式工程\遥控器控制器电机\ctrl\Project\..\FWlib\inc
+E:\嵌入式工程\遥控器控制器电机\ctrl_motor_and_handset\ctrl\Project\..\FWlib\inc
 -I
-E:\嵌入式工程\遥控器控制器电机\ctrl\Project\..\FWlib\src
+E:\嵌入式工程\遥控器控制器电机\ctrl_motor_and_handset\ctrl\Project\..\FWlib\src
 -I
-E:\嵌入式工程\遥控器控制器电机\ctrl\Project\..\USER
+E:\嵌入式工程\遥控器控制器电机\ctrl_motor_and_handset\ctrl\Project\..\USER
 -I
 C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.0\stm8\inc
 -I
 C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.0\stm8\inc\c
 -I
-E:\嵌入式工程\遥控器控制器电机\ctrl\FWlib\inc
+E:\嵌入式工程\遥控器控制器电机\ctrl_motor_and_handset\ctrl\FWlib\inc
 -I
-E:\嵌入式工程\遥控器控制器电机\ctrl\FWlib\src
+E:\嵌入式工程\遥控器控制器电机\ctrl_motor_and_handset\ctrl\FWlib\src
 -I
-E:\嵌入式工程\遥控器控制器电机\ctrl\USER
+E:\嵌入式工程\遥控器控制器电机\ctrl_motor_and_handset\ctrl\USER
 -D__CHAR_BITS__=8
 -D__CHAR_MAX__=0xff
 -D__CHAR_MIN__=0
