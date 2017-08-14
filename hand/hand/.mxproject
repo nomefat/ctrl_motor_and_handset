@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=F:/150k/hand/hand/Inc
+HeaderPath=F:/150k/ctrl_motor_and_handset/hand/hand/Inc
 HeaderFiles=stm32f1xx_it.h;stm32f1xx_hal_conf.h;main.h;
-SourcePath=F:/150k/hand/hand/Src
+SourcePath=F:/150k/ctrl_motor_and_handset/hand/hand/Src
 SourceFiles=stm32f1xx_it.h;stm32f1xx_hal_conf.h;main.h;stm32f1xx_it.c;stm32f1xx_hal_msp.c;main.c;
 
 [PreviousLibFiles]
