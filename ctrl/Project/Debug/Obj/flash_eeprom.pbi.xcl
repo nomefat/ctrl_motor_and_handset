@@ -1,4 +1,4 @@
-"E:\嵌入式工程\遥控器控制器电机\ctrl_motor_and_handset\ctrl\USER\drv_spi.c"
+"E:\嵌入式工程\遥控器控制器电机\ctrl_motor_and_handset\ctrl\USER\flash_eeprom.c"
 -std=c99
 -ferror-limit=0
 -I

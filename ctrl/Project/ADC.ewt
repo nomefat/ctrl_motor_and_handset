@@ -2127,7 +2127,13 @@
             <name>$PROJ_DIR$\..\USER\drv_spi.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\USER\flash_eeprom.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\USER\main.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\USER\pwm.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\USER\stm8s_interruput.c</name>

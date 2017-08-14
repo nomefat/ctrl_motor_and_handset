@@ -23,6 +23,49 @@ extern u8 UART_RX_NUM;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
+
+
+
+typedef struct _system_param
+{
+  u32 time_left ;                    // 剩余秒数 ，为0时不可操作
+  u16 area_code ;                    //区域码
+  u16 id;                        //本机ID
+  u8 forward_time;              //正转时间
+  u8 reverse_time;              //反转时间
+  u8 current_threshold[5];      //电流阈值
+  
+  
+}struct__system_param; 
+
+
+
+struct__system_param system_param;     //系统参数
+
+
+
+enum enum_motor_status
+{
+  none;                
+  forward;                  //正转
+  forward_to_stop;          //正转停止
+  forward_time_to_stop;     //正转时间到了停止
+  reverse;                  //反转
+  reverse_to_stop;          //反转停止
+  reverse_time_to_stop;     //反转时间到了停止
+  forward_overflow_to_stop;  //正转电流超限制后停止
+  reverse_voceflow_to_stop;  //反转电流超限制后停止
+}motor_status;
+
+
+
+
+
+
+
+
+
+
 int main(void)
 {
    u8 len ;
