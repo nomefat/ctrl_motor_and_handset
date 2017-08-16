@@ -22,14 +22,18 @@ typedef struct _btn_event
 }strcut_btn_event;
 
 
-struct_btn_status_count btn_status_count[21];
-strcut_btn_event btn_event[21];
+struct_btn_status_count btn_status_count[22];
+strcut_btn_event btn_event[22];
 
 unsigned char display_code[5];
+
+int power_stat = 0;
 
 
 extern TIM_HandleTypeDef htim1;
 
+
+void btn_0_9_callback(int i);
 
 
 
@@ -210,13 +214,73 @@ void desplay_scan(void)
 		wei=0;
 }
 
-
+void btn_power()
+{
+		
+		if(HAL_GPIO_ReadPin(power_btn_GPIO_Port,power_btn_Pin) == GPIO_PIN_SET)
+		{
+			btn_status_count[21].btn_down_count = 0;
+			btn_status_count[21].btn_up_count++;
+			if(btn_status_count[21].btn_up_count>10 && btn_event[21].down >0)
+				btn_event[21].up = 1;
+		}
+		else                  //按下
+		{
+			btn_status_count[21].btn_up_count = 0;
+			btn_status_count[21].btn_down_count++;
+			if(btn_status_count[21].btn_down_count>10)
+				btn_event[21].down = 1;
+			if(btn_status_count[21].btn_down_count>100)
+				btn_event[21].down = 2;
+		}	
+}
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	btn_scan();
 	desplay_scan();
+	btn_power();
 }
+
+
+void btn_handle(void)
+{
+	int i=0;
+	if(btn_event[21].down >0 && btn_event[21].up >0)
+	{
+		if(power_stat == 0)  //开机按键
+		{
+			btn_event[21].down = 0;
+			btn_event[21].up = 0;
+			power_stat = 1;
+			HAL_GPIO_WritePin(power_enable_GPIO_Port,power_enable_Pin,GPIO_PIN_SET); //开机使能
+		}
+		else
+		{
+			HAL_GPIO_WritePin(power_enable_GPIO_Port,power_enable_Pin,GPIO_PIN_RESET); //关机	
+		}
+	}
+	
+	for(i=0;i<21;i++)
+	{
+		if(btn_event[i].up >0 && i!=33 && i!=66)   //抛除CTRL 按键
+			break;
+	}
+	if(i>=21)
+		return;
+	
+	if(i==1 || i==2)
+		btn_0_9_callback(i);
+}
+
+
+
+
+void btn_0_9_callback(int i)
+{
+	
+}
+
 
 
 
