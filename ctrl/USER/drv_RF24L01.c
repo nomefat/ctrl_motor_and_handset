@@ -473,7 +473,7 @@ void NRF24L01_check( void )
 		}
 		else
 		{
-			drv_uart_tx_bytes( (uint8_t *)g_ErrorString, 26 );
+//			drv_uart_tx_bytes( (uint8_t *)g_ErrorString, 26 );
 		}
 		drv_delay_ms( 2000 );
 	}
@@ -606,8 +606,8 @@ uint8_t NRF24L01_RxPacket( uint8_t *rxbuf )
 void NRF24L01_Gpio_Init( void )
 {
 	//CE配置为推挽输出 IRQ上拉输入
-	GPIO_Init( RF24L01_CE_GPIO_PORT, RF24L01_CE_GPIO_PIN, GPIO_Mode_Out_PP_High_Fast );
-	GPIO_Init( RF24L01_IRQ_GPIO_PORT, RF24L01_IRQ_GPIO_PIN, GPIO_Mode_In_PU_No_IT );
+	GPIO_Init( RF24L01_CE_GPIO_PORT, RF24L01_CE_GPIO_PIN, GPIO_MODE_OUT_PP_HIGH_FAST );
+	GPIO_Init( RF24L01_IRQ_GPIO_PORT, RF24L01_IRQ_GPIO_PIN, GPIO_MODE_IN_PU_NO_IT );
 	
 	RF24L01_SET_CE_LOW( );		//使能设备
 	RF24L01_SET_CS_HIGH( );		//取消SPI片选

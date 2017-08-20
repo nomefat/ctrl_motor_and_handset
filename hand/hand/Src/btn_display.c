@@ -297,11 +297,11 @@ void btn_handle(void)
 			btn_event[21].down = 0;
 			btn_event[21].up = 0;
 			power_stat = 1;
-			HAL_GPIO_WritePin(power_enable_GPIO_Port,power_enable_Pin,GPIO_PIN_SET); //开机使能
+//			HAL_GPIO_WritePin(power_enable_GPIO_Port,power_enable_Pin,GPIO_PIN_SET); //开机使能
 		}
 		else
 		{
-			beep();
+			beep();beep();beep();beep();beep();beep();beep();beep();beep();beep();
 			HAL_GPIO_WritePin(power_enable_GPIO_Port,power_enable_Pin,GPIO_PIN_RESET); //关机	
 		}
 	}
@@ -406,6 +406,15 @@ void beep()
 	while(delay--);
 	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
 }
+
+void beep_long()
+{
+	int delay = 1000000;
+	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
+	while(delay--);
+	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
+}
+
 
 void led(int index,int stat)
 {

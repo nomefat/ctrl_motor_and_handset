@@ -2106,6 +2106,12 @@
             <name>$PROJ_DIR$\..\FWlib\src\stm8s_clk.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\FWlib\src\stm8s_gpio.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\FWlib\src\stm8s_spi.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\FWlib\src\stm8s_tim1.c</name>
         </file>
         <file>

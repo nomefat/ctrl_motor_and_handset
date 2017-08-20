@@ -18,7 +18,7 @@
 #define __DRV_DELAY_H__
 
 
-#include "stm8l10x.h"
+#include "stm8s.h"
 
 
 void drv_delay_ms( uint16_t Ms );

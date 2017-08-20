@@ -34,16 +34,16 @@
 void drv_spi_init( void )
 {
 	//SPI引脚配置 SCK MOSI NSS 配置为推挽输出 MISO配置为输入
-	GPIO_Init( SPI_CLK_GPIO_PORT, SPI_CLK_GPIO_PIN, GPIO_Mode_Out_PP_Low_Fast  );
-	GPIO_Init( SPI_MOSI_GPIO_PORT, SPI_MOSI_GPIO_PIN, GPIO_Mode_Out_PP_High_Slow  );
-	GPIO_Init( SPI_NSS_GPIO_PORT, SPI_NSS_GPIO_PIN, GPIO_Mode_Out_PP_High_Slow  );
-	GPIO_Init( SPI_MISO_GPIO_PORT, SPI_MISO_GPIO_PIN, GPIO_Mode_In_PU_No_IT  );
+	GPIO_Init( SPI_CLK_GPIO_PORT, SPI_CLK_GPIO_PIN, GPIO_MODE_OUT_PP_LOW_FAST  );
+	GPIO_Init( SPI_MOSI_GPIO_PORT, SPI_MOSI_GPIO_PIN, GPIO_MODE_OUT_PP_HIGH_SLOW  );
+	GPIO_Init( SPI_NSS_GPIO_PORT, SPI_NSS_GPIO_PIN, GPIO_MODE_OUT_PP_HIGH_SLOW  );
+	GPIO_Init( SPI_MISO_GPIO_PORT, SPI_MISO_GPIO_PIN, GPIO_MODE_IN_PU_NO_IT  );
 	
 	//SPI外设配置
-	CLK_PeripheralClockConfig( CLK_Peripheral_SPI,ENABLE );		//开SPI时钟
+	CLK_PeripheralClockConfig( CLK_PERIPHERAL_SPI,ENABLE );		//开SPI时钟
 	SPI_DeInit( );		//SPI复位
 	//SPI外设初始化
-	SPI_Init( SPI_FirstBit_MSB, SPI_BaudRatePrescaler_8, SPI_Mode_Master, SPI_CPOL_Low, SPI_CPHA_1Edge, SPI_Direction_2Lines_FullDuplex, SPI_NSS_Soft );
+	SPI_Init( SPI_FIRSTBIT_MSB, SPI_BAUDRATEPRESCALER_8, SPI_MODE_MASTER, SPI_CLOCKPOLARITY_LOW, SPI_CLOCKPHASE_1EDGE, SPI_DATADIRECTION_2LINES_FULLDUPLEX, SPI_NSS_SOFT ,1);
 	SPI_Cmd( ENABLE );	//SPI使能
 }
 
@@ -91,14 +91,14 @@ uint8_t drv_spi_read_write_byte( uint8_t TxByte )
   */
 void drv_spi_read_write_string( uint8_t* ReadBuffer, uint8_t* WriteBuffer, uint16_t Length )
 {
-	GPIO_ResetBits( SPI_NSS_GPIO_PORT, SPI_NSS_GPIO_PIN);			//片选
+	GPIO_WriteLow( SPI_NSS_GPIO_PORT, SPI_NSS_GPIO_PIN);			//片选
 	while( Length-- )
 	{
 		*ReadBuffer = drv_spi_read_write_byte( *WriteBuffer );		//一个字节的数据收发
 		ReadBuffer++;
 		WriteBuffer++;				//地址加1
 	}
-	GPIO_SetBits( SPI_NSS_GPIO_PORT, SPI_NSS_GPIO_PIN);				//取消片选
+	GPIO_WriteHigh( SPI_NSS_GPIO_PORT, SPI_NSS_GPIO_PIN);				//取消片选
 }
 
 /** 硬件SPI */
