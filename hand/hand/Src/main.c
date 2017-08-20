@@ -40,7 +40,7 @@
 #include "stm32f1xx_hal.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "btn_display.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -56,12 +56,18 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM1_Init(void);
 
+
+
+
+
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+extern void main_stat_poll(void);
+
 
 /* USER CODE END 0 */
 
@@ -69,7 +75,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+	int i = 0;
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -91,9 +97,22 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM1_Init();
+	
 
   /* USER CODE BEGIN 2 */
+	HAL_GPIO_WritePin(power_enable_GPIO_Port,power_enable_Pin,GPIO_PIN_SET);
+
+	
+	
+
+	
+	beep();	
+
+	
 	HAL_TIM_Base_Start_IT(&htim1);
+	
+
+	
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -103,7 +122,8 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-
+		btn_handle();
+		main_stat_poll();
   }
   /* USER CODE END 3 */
 
@@ -276,7 +296,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin : power_btn_Pin */
   GPIO_InitStruct.Pin = power_btn_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(power_btn_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : g_Pin */
