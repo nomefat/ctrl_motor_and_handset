@@ -401,10 +401,10 @@ void btn_enter()
 
 void beep()
 {
-	int delay = 10000;
-	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
-	while(delay--);
-	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
+//	int delay = 10000;
+//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
+//	while(delay--);
+//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
 }
 
 void beep_long()

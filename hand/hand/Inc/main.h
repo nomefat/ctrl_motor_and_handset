@@ -58,6 +58,7 @@
 #define rf_ce_GPIO_Port GPIOA
 #define rf_irq_Pin GPIO_PIN_3
 #define rf_irq_GPIO_Port GPIOA
+#define rf_irq_EXTI_IRQn EXTI3_IRQn
 #define rf_cs_Pin GPIO_PIN_4
 #define rf_cs_GPIO_Port GPIOA
 #define led4_Pin GPIO_PIN_0

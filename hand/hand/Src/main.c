@@ -41,9 +41,12 @@
 
 /* USER CODE BEGIN Includes */
 #include "btn_display.h"
+#include "bsp_spi_nrf.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
+SPI_HandleTypeDef hspi1;
+
 TIM_HandleTypeDef htim1;
 
 /* USER CODE BEGIN PV */
@@ -55,10 +58,7 @@ TIM_HandleTypeDef htim1;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM1_Init(void);
-
-
-
-
+static void MX_SPI1_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
@@ -67,7 +67,8 @@ static void MX_TIM1_Init(void);
 
 /* USER CODE BEGIN 0 */
 extern void main_stat_poll(void);
-
+extern void rf_send(void *pdata,uint8_t len);
+uint8_t data[10] = {1,2,3,4,5,6,7,8,9,0};
 
 /* USER CODE END 0 */
 
@@ -97,7 +98,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM1_Init();
-	
+  MX_SPI1_Init();
 
   /* USER CODE BEGIN 2 */
 	HAL_GPIO_WritePin(power_enable_GPIO_Port,power_enable_Pin,GPIO_PIN_SET);
@@ -108,11 +109,16 @@ int main(void)
 	
 	beep();	
 
+	while(NRF_Check() != SUCCESS)
+	{
+		
+	}
+	
+	rf_send(data,10);
 	
 	HAL_TIM_Base_Start_IT(&htim1);
 	
 
-	
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -176,6 +182,29 @@ void SystemClock_Config(void)
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
+/* SPI1 init function */
+static void MX_SPI1_Init(void)
+{
+
+  hspi1.Instance = SPI1;
+  hspi1.Init.Mode = SPI_MODE_MASTER;
+  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
+  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi1.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
 /* TIM1 init function */
 static void MX_TIM1_Init(void)
 {
@@ -215,9 +244,6 @@ static void MX_TIM1_Init(void)
         * Output
         * EVENT_OUT
         * EXTI
-     PA5   ------> SPI1_SCK
-     PA6   ------> SPI1_MISO
-     PA7   ------> SPI1_MOSI
 */
 static void MX_GPIO_Init(void)
 {
@@ -267,12 +293,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(rf_irq_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PA5 PA6 PA7 */
-  GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
   /*Configure GPIO pins : led4_Pin led5_Pin V1_Pin V2_Pin 
                            V3_Pin */
   GPIO_InitStruct.Pin = led4_Pin|led5_Pin|V1_Pin|V2_Pin 
@@ -296,7 +316,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin : power_btn_Pin */
   GPIO_InitStruct.Pin = power_btn_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(power_btn_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : g_Pin */
@@ -312,6 +332,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI3_IRQn);
 
 }
 
