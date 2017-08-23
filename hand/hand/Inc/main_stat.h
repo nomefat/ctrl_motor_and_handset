@@ -6,6 +6,7 @@
 
 typedef enum _main_stat
 {
+	rf_error,
 	power_on,
 	password_ok,
 	control,

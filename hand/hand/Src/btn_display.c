@@ -66,7 +66,10 @@ int power_stat = 0;
 
 extern TIM_HandleTypeDef htim1;
 
+extern void rf_send(void *pdata,uint8_t len);
 
+extern uint8_t data[10];
+	
 void btn_0_9_callback(int i);
 void btn_enter();
 
@@ -271,16 +274,22 @@ void btn_power()
 }
 
 extern int time_sec;
+extern int time_100ms;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	static int time = 0;
 	time++;
-	if(time>=500)
+	if(time%500 == 0)
 	{
-		time = 0;
+
 		time_sec++;
 	}
-		
+	if(time%50 == 0)
+	{
+
+		time_100ms++;
+	}	
+	
 	btn_scan();
 	desplay_scan();
 	btn_power();
@@ -394,6 +403,10 @@ void btn_enter()
 			smg_value[3] = -1;
 		}
 	}
+	else if(main_stat == password_ok)
+	{
+		rf_send(data,4);
+	}
 }
 
 
@@ -401,18 +414,18 @@ void btn_enter()
 
 void beep()
 {
-//	int delay = 10000;
-//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
-//	while(delay--);
-//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
+	int delay = 10000;
+	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
+	while(delay--);
+	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
 }
 
 void beep_long(void)
 {
-//	int delay = 1000000;
-//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
-//	while(delay--);
-//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
+	int delay = 1000000;
+	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
+	while(delay--);
+	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
 }
 
 

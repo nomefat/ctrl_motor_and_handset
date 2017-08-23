@@ -2,10 +2,11 @@
 #include "stm32f1xx_hal.h"
 #include "btn_display.h"
 #include "main_stat.h"
-
+#include "bsp_spi_nrf.h"
 
 
 int time_sec;
+int time_100ms;
 
 uint32_t password = 0;
 
@@ -20,13 +21,34 @@ unsigned char smg_cur_end = 4;
 
 void main_stat_poll(void)
 {
-	
-	if(main_stat == power_on)            //开机状态，等待输入密码
+
+	if(main_stat == rf_error)  
+	{
+		if(time_100ms%2)		
+		{
+			sed_smg(0,E);
+			sed_smg(1,R);
+			sed_smg(2,R);
+			sed_smg(3,E);
+			if(NRF_Check() == SUCCESS)
+			{
+				main_stat = power_on;
+			}
+		}
+		else
+		{
+			sed_smg(0,0xff);			
+			sed_smg(1,0xff);	
+			sed_smg(2,0xff);	
+			sed_smg(3,0xff);				
+		}
+	}
+	else if(main_stat == power_on)            //开机状态，等待输入密码
 	{
 			led(LED1,0);
 			led(LED2,0);
 			led(LED3,0);
-			if(time_sec%2)
+			if(time_100ms%2)
 			{
 				if(smg_value[0] == -1)
 					sed_smg(0,0xbf);
@@ -56,19 +78,19 @@ void main_stat_poll(void)
 		sed_smg(2,0xff);
 		sed_smg(3,0xff);	
 		
-		if(time_sec%3 == 0)
+		if(time_100ms%9 == 0)
 		{
 			led(LED1,1);
 			led(LED2,0);
 			led(LED3,0);
 		}
-		else if(time_sec%3 == 1)
+		else if(time_100ms%9 == 3)
 		{
 			led(LED1,0);
 			led(LED2,1);
 			led(LED3,0);
 		}
-		else if(time_sec%3 == 2)
+		else if(time_100ms%9 == 6)
 		{
 			led(LED1,0);
 			led(LED2,0);

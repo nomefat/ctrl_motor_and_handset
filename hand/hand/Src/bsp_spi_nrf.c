@@ -155,7 +155,7 @@ void NRF_RX_Mode(void)
 
    SPI_NRF_WriteBuf(NRF_WRITE_REG+RX_ADDR_P0,RX_ADDRESS,RX_ADR_WIDTH);//写RX节点地址
 
-   SPI_NRF_WriteReg(NRF_WRITE_REG+EN_AA,0x01);    //使能通道0的自动应答    
+   SPI_NRF_WriteReg(NRF_WRITE_REG+EN_AA,0x00);    //使能通道0的自动应答    
 
    SPI_NRF_WriteReg(NRF_WRITE_REG+EN_RXADDR,0x01);//使能通道0的接收地址    
 
@@ -186,11 +186,11 @@ void NRF_TX_Mode(void)
 
    SPI_NRF_WriteBuf(NRF_WRITE_REG+RX_ADDR_P0,RX_ADDRESS,RX_ADR_WIDTH); //设置TX节点地址,主要为了使能ACK   
 
-   SPI_NRF_WriteReg(NRF_WRITE_REG+EN_AA,0x01);     //使能通道0的自动应答    
+   SPI_NRF_WriteReg(NRF_WRITE_REG+EN_AA,0x00);     //使能通道0的自动应答    
 
-   SPI_NRF_WriteReg(NRF_WRITE_REG+EN_RXADDR,0x01); //使能通道0的接收地址  
+   SPI_NRF_WriteReg(NRF_WRITE_REG+EN_RXADDR,0x00); //使能通道0的接收地址  
 
-   SPI_NRF_WriteReg(NRF_WRITE_REG+SETUP_RETR,0x1a);//设置自动重发间隔时间:500us + 86us;最大自动重发次数:10次
+   SPI_NRF_WriteReg(NRF_WRITE_REG+SETUP_RETR,0x00);//设置自动重发间隔时间:500us + 86us;最大自动重发次数:10次
 
    SPI_NRF_WriteReg(NRF_WRITE_REG+RF_CH,CHANAL);       //设置RF通道为CHANAL
 
@@ -203,7 +203,7 @@ void NRF_TX_Mode(void)
 	
 	rf_mode = rf_tx;
 	
-  Delay(0xffff); //CE要拉高一段时间才进入发送模式
+  Delay(1000000); //CE要拉高一段时间才进入发送模式
 }
 
 /**
@@ -289,15 +289,16 @@ void NRF_Tx_over(void)
 
 	SPI_NRF_WriteReg(FLUSH_TX,NOP);    //清除TX FIFO寄存器 
 
-	 /*判断中断类型*/    
-	if(state&MAX_RT)                     //达到最大重发次数
-			 rf_send_status = MAX_RT; 
+	rf_send_status = state;
+//	 /*判断中断类型*/    
+//	if(state&MAX_RT)                     //达到最大重发次数
+//			 rf_send_status = MAX_RT; 
 
-	else if(state&TX_DS)                  //发送完成
-		 	rf_send_status = TX_DS;
-	 else						  
-			rf_send_status = ERROR;                 //其他原因发送失败	
-	 
+//	else if(state&TX_DS)                  //发送完成
+//		 	rf_send_status = TX_DS;
+//	 else						  
+//			rf_send_status = ERROR;                 //其他原因发送失败	
+//	 
 	 rf_mode = rf_tx_over;
 }
 
@@ -306,7 +307,7 @@ void NRF_Tx_over(void)
 
 
 
-
+u8 fuck = 0;
 
 /**
   * @brief   用于从NRF的接收缓冲区中读出数据
@@ -320,7 +321,10 @@ u8 NRF_Rx_Dat(void)
 	u8 state; 
 //	NRF_CE_HIGH();	 //进入接收状态
 //	 /*等待接收中断*/
-//	while(NRF_Read_IRQ()!=0); 
+//	while(NRF_Read_IRQ()!=0)
+//	{
+//		fuck=SPI_NRF_ReadReg(STATUS);
+//	}		
 	
 	NRF_CE_LOW();  	 //进入待机状态
 	/*读取status寄存器的值  */               
@@ -333,7 +337,8 @@ u8 NRF_Rx_Dat(void)
 	if(state&RX_DR)                                 //接收到数据
 	{
 	  SPI_NRF_ReadBuf(RD_RX_PLOAD,rxbuf,RX_PLOAD_WIDTH);//读取数据
-	     SPI_NRF_WriteReg(FLUSH_RX,NOP);          //清除RX FIFO寄存器
+	  SPI_NRF_WriteReg(FLUSH_RX,NOP);          //清除RX FIFO寄存器
+		NRF_CE_HIGH();	
 	  return RX_DR; 
 	}
 	else    

@@ -33,6 +33,14 @@
 #define Num9    ~(Sega + Segb + Segc + Segd        + Segf + Segg)
 #define Numblk  ~(0                                             )
 
+
+#define E   ~(Sega + Segd + Sege + Segf + Segg )
+#define R    ~(Sega + Segb + Segc + Sege + Segf + Segg )
+
+
+
+
+
 #define F_STAR 10
 #define F_JIN  11
 

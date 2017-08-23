@@ -70,7 +70,7 @@ static void MX_SPI1_Init(void);
 extern void main_stat_poll(void);
 extern void rf_send(void *pdata,uint8_t len);
 uint8_t data[10] = {1,2,3,4,5,6,7,8,9,0};
-
+extern unsigned char display_code[5];
 /* USER CODE END 0 */
 
 int main(void)
@@ -109,15 +109,19 @@ int main(void)
 
 	
 	beep();	
-
-	while(NRF_Check() != SUCCESS)
-	{
-		
-	}
-	
-	rf_send(data,10);
 	
 	HAL_TIM_Base_Start_IT(&htim1);
+	
+	if(NRF_Check() != SUCCESS)
+	{
+		main_stat = rf_error;
+	}
+	else
+		main_stat = power_on;
+	
+
+//	NRF_RX_Mode();
+//	NRF_Rx_Dat();
 	
 
 	write_password(0x12345678);
