@@ -88,9 +88,21 @@ u8 SPI_NRF_WriteBuf(u8 reg ,u8 *pBuf,u8 bytes);
 
 void NRF_TX_Mode(void);
 void NRF_RX_Mode(void);
-u8 NRF_Rx_Dat(u8 *rxbuf);
+u8 NRF_Rx_Dat(void);
 u8 NRF_Tx_Dat(u8 *txbuf,u8 len);
 u8 NRF_Check(void); 
+void NRF_go_RX_mode(void);
+void NRF_Tx_over(void);
+
+typedef enum rf_mode
+{
+	none,
+	rf_tx,
+	rf_tx_over,
+	rf_rx
+}enum_rf_mode;
+
+
 
 
 

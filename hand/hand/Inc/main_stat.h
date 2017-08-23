@@ -22,5 +22,14 @@ extern unsigned char smg_cur_begin ;
 extern unsigned char smg_cur_end ;
 
 
+
+#define FLASH_ADDRESS (0x08000000+0x10000-1024)
+
+
+void write_password(unsigned int psw);
+void read_password(void);
+
+
+
 #endif
 

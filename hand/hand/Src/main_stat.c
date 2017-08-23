@@ -7,7 +7,7 @@
 
 int time_sec;
 
-
+uint32_t password = 0;
 
 enmu_main_stat main_stat ;
 
@@ -21,7 +21,7 @@ unsigned char smg_cur_end = 4;
 void main_stat_poll(void)
 {
 	
-	if(main_stat == power_on)
+	if(main_stat == power_on)            //开机状态，等待输入密码
 	{
 			led(LED1,0);
 			led(LED2,0);
@@ -49,7 +49,7 @@ void main_stat_poll(void)
 					sed_smg(3,0xff);			
 			}
 	}
-	else if(main_stat == password_ok)
+	else if(main_stat == password_ok)  //密码已经验证成功
 	{		
 		sed_smg(0,0xff);
 		sed_smg(1,0xff);			
@@ -75,8 +75,41 @@ void main_stat_poll(void)
 			led(LED3,1);
 		}		
 	}
+	else if(main_stat == control)  //控制电机状态
+	{
+		
+	}
+	else if(main_stat == set_current)  //设置电流限值状态
+	{
+		
+	}		
+	else if(main_stat == set_encoding) //设置编码状态
+	{
+		
+	}		
 	
-	
+}
+
+
+void read_password(void)
+{
+	password = *((uint32_t *)FLASH_ADDRESS );
+	if(password == 0xffffffff)
+	{
+		write_password(0x12345678);
+	}
+}
+
+void write_password(uint32_t psw)
+{
+	int delay;
+	HAL_FLASH_Unlock();
+	FLASH_PageErase(FLASH_ADDRESS);
+	delay = 1000000;
+	while(delay--);
+	HAL_FLASH_Unlock();
+	HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD,FLASH_ADDRESS,psw);
+	HAL_FLASH_Lock();	
 	
 }
 

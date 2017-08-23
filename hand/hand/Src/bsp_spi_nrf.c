@@ -23,6 +23,12 @@ extern SPI_HandleTypeDef hspi1;
  u8 TX_ADDRESS[TX_ADR_WIDTH] = {0x34,0x43,0x10,0x10,0x01};  // 定义一个静态发送地址
  u8 RX_ADDRESS[RX_ADR_WIDTH] = {0x34,0x43,0x10,0x10,0x01};
 
+ 
+ enum_rf_mode rf_mode;
+ u8 rf_send_status = 0;
+u8 rxbuf[32];
+ 
+ 
 void Delay(__IO u32 nCount)
 {
   for(; nCount != 0; nCount--);
@@ -164,6 +170,7 @@ void NRF_RX_Mode(void)
 /*CE拉高，进入接收模式*/	
   NRF_CE_HIGH();
 
+	rf_mode = rf_rx;
 }    
 
 /**
@@ -193,7 +200,10 @@ void NRF_TX_Mode(void)
 
 /*CE拉高，进入发送模式*/	
   NRF_CE_HIGH();
-    Delay(0xffff); //CE要拉高一段时间才进入发送模式
+	
+	rf_mode = rf_tx;
+	
+  Delay(0xffff); //CE要拉高一段时间才进入发送模式
 }
 
 /**
@@ -245,9 +255,32 @@ u8 NRF_Tx_Dat(u8 *txbuf,u8 len)
       /*CE为高，txbuf非空，发送数据包 */   
  	 NRF_CE_HIGH();
 	  	
-	  /*等待发送完成中断 */                            
-	while(NRF_Read_IRQ()!=0); 	
-	
+//	  /*等待发送完成中断 */                            
+//	while(NRF_Read_IRQ()!=0); 	
+//	
+//	/*读取状态寄存器的值 */                              
+//	state = SPI_NRF_ReadReg(STATUS);
+
+//	 /*清除TX_DS或MAX_RT中断标志*/                  
+//	SPI_NRF_WriteReg(NRF_WRITE_REG+STATUS,state); 	
+
+//	SPI_NRF_WriteReg(FLUSH_TX,NOP);    //清除TX FIFO寄存器 
+
+//	 /*判断中断类型*/    
+//	if(state&MAX_RT)                     //达到最大重发次数
+//			 return MAX_RT; 
+
+//	else if(state&TX_DS)                  //发送完成
+//		 	return TX_DS;
+//	 else						  
+//			return ERROR;                 //其他原因发送失败
+} 
+
+
+void NRF_Tx_over(void)
+{
+		u8 state;  
+
 	/*读取状态寄存器的值 */                              
 	state = SPI_NRF_ReadReg(STATUS);
 
@@ -258,13 +291,22 @@ u8 NRF_Tx_Dat(u8 *txbuf,u8 len)
 
 	 /*判断中断类型*/    
 	if(state&MAX_RT)                     //达到最大重发次数
-			 return MAX_RT; 
+			 rf_send_status = MAX_RT; 
 
 	else if(state&TX_DS)                  //发送完成
-		 	return TX_DS;
+		 	rf_send_status = TX_DS;
 	 else						  
-			return ERROR;                 //其他原因发送失败
-} 
+			rf_send_status = ERROR;                 //其他原因发送失败	
+	 
+	 rf_mode = rf_tx_over;
+}
+
+
+
+
+
+
+
 
 /**
   * @brief   用于从NRF的接收缓冲区中读出数据
@@ -273,12 +315,12 @@ u8 NRF_Tx_Dat(u8 *txbuf,u8 len)
   * @retval 
   *		@arg 接收结果
   */
-u8 NRF_Rx_Dat(u8 *rxbuf)
+u8 NRF_Rx_Dat(void)
 {
 	u8 state; 
-	NRF_CE_HIGH();	 //进入接收状态
-	 /*等待接收中断*/
-	while(NRF_Read_IRQ()!=0); 
+//	NRF_CE_HIGH();	 //进入接收状态
+//	 /*等待接收中断*/
+//	while(NRF_Read_IRQ()!=0); 
 	
 	NRF_CE_LOW();  	 //进入待机状态
 	/*读取status寄存器的值  */               
@@ -298,6 +340,12 @@ u8 NRF_Rx_Dat(u8 *rxbuf)
 		return ERROR;                    //没收到任何数据
 }
 
-
+void NRF_go_RX_mode(void)
+{
+	if(rf_mode == rf_tx_over)
+	{
+		NRF_RX_Mode();
+	}
+}
 
 /*********************************************END OF FILE**********************/

@@ -275,7 +275,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	static int time = 0;
 	time++;
-	if(time>=100)
+	if(time>=500)
 	{
 		time = 0;
 		time_sec++;
@@ -301,7 +301,7 @@ void btn_handle(void)
 		}
 		else
 		{
-			beep();beep();beep();beep();beep();beep();beep();beep();beep();beep();
+			beep_long();
 			HAL_GPIO_WritePin(power_enable_GPIO_Port,power_enable_Pin,GPIO_PIN_RESET); //¹Ø»ú	
 		}
 	}
@@ -407,12 +407,12 @@ void beep()
 //	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
 }
 
-void beep_long()
+void beep_long(void)
 {
-	int delay = 1000000;
-	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
-	while(delay--);
-	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
+//	int delay = 1000000;
+//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
+//	while(delay--);
+//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
 }
 
 

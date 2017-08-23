@@ -42,6 +42,7 @@
 /* USER CODE BEGIN Includes */
 #include "btn_display.h"
 #include "bsp_spi_nrf.h"
+#include "main_stat.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -119,6 +120,9 @@ int main(void)
 	HAL_TIM_Base_Start_IT(&htim1);
 	
 
+	write_password(0x12345678);
+//	write_password(0x55556666);
+//	write_password(0x44448888);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -130,6 +134,7 @@ int main(void)
   /* USER CODE BEGIN 3 */
 		btn_handle();
 		main_stat_poll();
+		NRF_go_RX_mode();
   }
   /* USER CODE END 3 */
 
@@ -213,9 +218,9 @@ static void MX_TIM1_Init(void)
   TIM_MasterConfigTypeDef sMasterConfig;
 
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 16;
+  htim1.Init.Prescaler = 64;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 10000;
+  htim1.Init.Period = 2000;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV4;
   htim1.Init.RepetitionCounter = 0;
   if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
@@ -289,8 +294,8 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : rf_irq_Pin */
   GPIO_InitStruct.Pin = rf_irq_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(rf_irq_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : led4_Pin led5_Pin V1_Pin V2_Pin 

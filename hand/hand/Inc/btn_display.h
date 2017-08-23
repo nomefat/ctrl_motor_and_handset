@@ -48,6 +48,7 @@
 #define F_EXIT       16
 
 void beep();
+void beep_long();
 void led(int index,int stat);
 void btn_handle(void);
 void sed_smg_number(int index, int num);
