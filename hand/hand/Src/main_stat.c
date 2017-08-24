@@ -73,10 +73,6 @@ void main_stat_poll(void)
 	}
 	else if(main_stat == password_ok)  //密码已经验证成功
 	{		
-		sed_smg(0,0xff);
-		sed_smg(1,0xff);			
-		sed_smg(2,0xff);
-		sed_smg(3,0xff);	
 		
 		if(time_100ms%9 == 0)
 		{
@@ -118,21 +114,26 @@ void read_password(void)
 	password = *((uint32_t *)FLASH_ADDRESS );
 	if(password == 0xffffffff)
 	{
-		write_password(0x12345678);
+		write_password(1234);
+		password = 1234;
 	}
 }
+	HAL_StatusTypeDef ret1;
+	HAL_StatusTypeDef ret2;
+	HAL_StatusTypeDef ret3;
 
 void write_password(uint32_t psw)
 {
-	int delay;
-	HAL_FLASH_Unlock();
-	FLASH_PageErase(FLASH_ADDRESS);
+	int delay = 1000000;
+
+	
+	FLASH_PageErase(FLASH_ADDRESS);	
+	while(delay--);
+	ret1 = HAL_FLASH_Unlock();		
+	ret2 = HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD,FLASH_ADDRESS,psw);
 	delay = 1000000;
 	while(delay--);
-	HAL_FLASH_Unlock();
-	HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD,FLASH_ADDRESS,psw);
-	HAL_FLASH_Lock();	
-	
+	ret3 = HAL_FLASH_Lock();	
 }
 
 

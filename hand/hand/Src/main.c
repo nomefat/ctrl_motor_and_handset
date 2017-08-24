@@ -105,7 +105,7 @@ int main(void)
 	HAL_GPIO_WritePin(power_enable_GPIO_Port,power_enable_Pin,GPIO_PIN_SET);
 
 	
-	
+	read_password();
 
 	
 	beep();	
@@ -119,13 +119,10 @@ int main(void)
 	else
 		main_stat = power_on;
 	
+write_password(0x12345678);
 
-//	NRF_RX_Mode();
-//	NRF_Rx_Dat();
 	
 
-	write_password(0x12345678);
-//	write_password(0x55556666);
 //	write_password(0x44448888);
   /* USER CODE END 2 */
 

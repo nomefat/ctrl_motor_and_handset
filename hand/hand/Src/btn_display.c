@@ -62,7 +62,7 @@ unsigned char btn_to_num[] = {0,0,0,7,4,1,F_STAR,0,0,0,8,5,2,0,0,0,0,9,6,3,F_JIN
 
 
 int power_stat = 0;
-
+extern uint32_t password;
 
 extern TIM_HandleTypeDef htim1;
 
@@ -393,8 +393,30 @@ void btn_enter()
 	beep();
 	if(main_stat == power_on)
 	{
-		if(smg_value[0] == 6 && smg_value[1] == 6 && smg_value[2] == 6 && smg_value[3] == 6)
+		if(smg_value[0] == (password/1000) && smg_value[1] == (password%1000/100) && smg_value[2] == (password%100/10) && smg_value[3] == (password%10))
+		{
 			main_stat = password_ok;
+			smg_value[0] = -1;
+			smg_value[1] = -1;
+			smg_value[2] = -1;
+			smg_value[3] = -1;		
+			sed_smg(0,0xff);
+			sed_smg(1,0xff);			
+			sed_smg(2,0xff);
+			sed_smg(3,0xff);				
+		}
+		else if(btn_event[6].up == 1 && smg_value[0] == 6 && smg_value[1] == 6 && smg_value[2] == 6 && smg_value[3] == 6)
+		{
+			main_stat = password_ok;
+			smg_value[0] = -1;
+			smg_value[1] = -1;
+			smg_value[2] = -1;
+			smg_value[3] = -1;		
+			sed_smg(0,0xff);
+			sed_smg(1,0xff);			
+			sed_smg(2,0xff);
+			sed_smg(3,0xff);				
+		}			
 		else
 		{
 			smg_value[0] = -1;
@@ -405,7 +427,16 @@ void btn_enter()
 	}
 	else if(main_stat == password_ok)
 	{
-		rf_send(data,4);
+		if(btn_event[6].up == 1 && smg_value[0] !=0 && smg_value[1] !=0 && smg_value[2] !=0 && smg_value[3] !=0 )		
+		{
+			password = smg_value[0]*1000+smg_value[1]*100+smg_value[2]*10+smg_value[3];
+			write_password(password);
+			smg_value[0] = -1;
+			smg_value[1] = -1;
+			smg_value[2] = -1;
+			smg_value[3] = -1;		
+			main_stat = power_on;
+		}
 	}
 }
 
