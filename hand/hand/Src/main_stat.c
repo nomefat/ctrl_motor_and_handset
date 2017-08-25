@@ -12,6 +12,8 @@ uint32_t password = 0;
 
 enmu_main_stat main_stat ;
 
+enmu_control_stat control_stat;
+
 signed char smg_value[4] = {-1,-1,-1,-1};
 
 unsigned char smg_cur = 0;
@@ -19,10 +21,15 @@ unsigned char smg_cur_begin = 0;
 unsigned char smg_cur_end = 4;
 
 
+int8_t zhengzhuan_sec = -1;
+int8_t fangzhuan_sec = -1;
+
+int8_t current_value = -1;
+
 void main_stat_poll(void)
 {
 
-	if(main_stat == rf_error)  
+	if(main_stat == rf_error)    //射频错误
 	{
 		if(time_100ms%2)		
 		{
@@ -95,6 +102,58 @@ void main_stat_poll(void)
 	}
 	else if(main_stat == control)  //控制电机状态
 	{
+
+		if(control_stat==find_dev)        //找设备
+		{
+
+			
+		}
+		else if(control_stat==find_none_dev)  //没找到设备  闪烁编号
+		{
+			if(time_100ms%2)
+			{
+				sed_smg_number(0,smg_value[0]);
+				sed_smg_number(1,smg_value[1]);			
+				sed_smg_number(2,smg_value[2]);			
+				sed_smg_number(3,smg_value[3]);
+			}
+			else
+			{
+				sed_smg(0,0xff);
+				sed_smg(1,0xff);			
+				sed_smg(2,0xff);			
+				sed_smg(3,0xff);			
+			}			
+		}
+		else if(control_stat==find_ok_dev)    //已经找到设备 定时读取设备的状态
+		{
+			sed_smg(0,0xbf);
+			sed_smg(1,0xbf);			
+			sed_smg(2,0xbf);	
+			if(time_100ms%3 == 0) //定时询问设备状态
+			{
+				
+			}				
+		}
+		else if(control_stat==set_zhengzhuan_sec)    //获取设备正转时间 可以修改
+		{
+			if(zhengzhuan_sec == -1 && time_100ms%3 == 0)
+			{
+				 //获取正转时间
+			}
+		}
+		else if(control_stat==set_zhengzhuan_sec)    //获取设备反转时间 可以修改
+		{
+			if(fangzhuan_sec == -1 && time_100ms%3 == 0)
+			{
+				//获取反转时间
+			}			
+		}
+
+
+
+
+
 		
 	}
 	else if(main_stat == set_current)  //设置电流限值状态
@@ -118,22 +177,23 @@ void read_password(void)
 		password = 1234;
 	}
 }
-	HAL_StatusTypeDef ret1;
-	HAL_StatusTypeDef ret2;
-	HAL_StatusTypeDef ret3;
+
 
 void write_password(uint32_t psw)
 {
-	int delay = 1000000;
-
+	FLASH_EraseInitTypeDef pEraseInit;
+	uint32_t PageError	;
 	
-	FLASH_PageErase(FLASH_ADDRESS);	
-	while(delay--);
-	ret1 = HAL_FLASH_Unlock();		
-	ret2 = HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD,FLASH_ADDRESS,psw);
-	delay = 1000000;
-	while(delay--);
-	ret3 = HAL_FLASH_Lock();	
+	HAL_FLASH_Unlock();	
+	pEraseInit.TypeErase = FLASH_TYPEERASE_PAGES;
+	pEraseInit.PageAddress = FLASH_ADDRESS;
+	pEraseInit.NbPages = 1;
+	
+	HAL_FLASHEx_Erase(&pEraseInit,&PageError);	
+
+	HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD,FLASH_ADDRESS,psw);
+
+	HAL_FLASH_Lock();	
 }
 
 

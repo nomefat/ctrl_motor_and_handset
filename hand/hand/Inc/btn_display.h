@@ -37,7 +37,7 @@
 #define E   ~(Sega + Segd + Sege + Segf + Segg )
 #define R    ~(Sega + Segb + Segc + Sege + Segf + Segg )
 
-
+#define S     ~(Sega + Segc + Segd + Segf + Segf + Segg )
 
 
 

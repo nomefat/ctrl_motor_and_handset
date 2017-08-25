@@ -70,6 +70,15 @@ extern void rf_send(void *pdata,uint8_t len);
 
 extern uint8_t data[10];
 	
+extern enmu_control_stat control_stat;
+	
+extern int8_t zhengzhuan_sec ;
+extern int8_t fangzhuan_sec ;	
+extern	int8_t current_value;
+	
+	
+	
+	
 void btn_0_9_callback(int i);
 void btn_enter();
 
@@ -329,37 +338,127 @@ void btn_handle(void)
 	if(i==3 || i==4|| i==5|| i==10|| i==11|| i==12|| i==13|| i==17|| i==18|| i==19)
 		btn_0_9_callback(i);
 	
-	if(i==F_MAKE_CODE)
+	if(i==F_MAKE_CODE)    //编码按钮
 	{
-		
+		if(main_stat == password_ok) 
+		{
+			beep();
+			main_stat = set_encoding;
+			led(LED1,0);
+			led(LED2,0);
+			led(LED3,1);
+			smg_value[0] = -1;
+			smg_value[1] = -1;
+			smg_value[2] = -1;
+			smg_value[3] = -1;		
+			sed_smg(0,0xf7);
+			sed_smg(1,0xf7);			
+			sed_smg(2,0xf7);
+			sed_smg(3,0xf7);				
+		}		
 	}
-	else if(i==F_CONTROL)
+	else if(i==F_CONTROL)    //控制按钮
 	{
-		
+		if(main_stat == password_ok) 
+		{
+			beep();
+			main_stat = control;
+			led(LED1,1);
+			led(LED2,0);
+			led(LED3,0);	
+			smg_value[0] = -1;
+			smg_value[1] = -1;
+			smg_value[2] = -1;
+			smg_value[3] = -1;		
+			sed_smg(0,0xfe);
+			sed_smg(1,0xfe);			
+			sed_smg(2,0xfe);
+			sed_smg(3,0xfe);					
+		}
 	}
-	else if(i==F_CURRENT)
+	else if(i==F_CURRENT)   //电流设定按钮
 	{
-		
+		if(main_stat == password_ok) 
+		{
+			beep();
+			main_stat = set_current;
+			led(LED1,0);
+			led(LED2,1);
+			led(LED3,0);
+			smg_value[0] = -1;
+			smg_value[1] = -1;
+			smg_value[2] = -1;
+			smg_value[3] = -1;		
+			sed_smg(0,0xbf);
+			sed_smg(1,0xbf);			
+			sed_smg(2,0xbf);
+			sed_smg(3,0xbf);				
+		}		
 	}
-	else if(i==F_UP)
+	else if(i==F_UP)   //上
 	{
-		
+		beep();
+		if(control_stat==find_ok_dev && main_stat == control)  //控制状态下，已经找到设备
+		{
+			control_stat = find_dev;
+		}		
 	}
-	else if(i==F_DOWN)
+	else if(i==F_DOWN)   //下
 	{
-		
+		beep();
+		if(control_stat==find_ok_dev && main_stat == control)  //控制状态下，已经找到设备
+		{
+			control_stat = find_dev;
+		}			
 	}	
-	else if(i==F_ENTER)
+	else if(i==F_ENTER)  //确认按键
 	{
 		btn_enter();
 	}
-	else if(i==F_BACK)
+	else if(i==F_BACK)   //退格按钮
 	{
-		
+		beep();
+		if(control_stat==find_ok_dev && main_stat == control)  //控制状态下，已经找到设备
+		{
+			control_stat = set_zhengzhuan_sec;
+			zhengzhuan_sec = -1;
+			smg_cur_begin = 2;
+			sed_smg(0,S);
+			sed_smg(1,0XBF);		
+			sed_smg(2,0XBF);	
+			sed_smg(3,0XBF);				
+		}					
+		else if(control_stat==set_zhengzhuan_sec && main_stat == control)  //控制状态下,获取正转时间
+		{
+			control_stat = set_fangzhuan_sec;
+			fangzhuan_sec = -1;
+			sed_smg(0,R);	
+			sed_smg(1,0XBF);		
+			sed_smg(2,0XBF);	
+			sed_smg(3,0XBF);				
+		}				
+		else if(control_stat==set_fangzhuan_sec && main_stat == control)  //控制状态下，获取反转时间
+		{
+			control_stat = set_zhengzhuan_sec;
+			zhengzhuan_sec = -1;
+			sed_smg(0,S);		
+			sed_smg(1,0XBF);		
+			sed_smg(2,0XBF);	
+			sed_smg(3,0XBF);	
+			
+		}						
 	}
-	else if(i==F_EXIT)
+	else if(i==F_EXIT)    //退出按钮
 	{
-		
+		beep();
+		if((control_stat==set_fangzhuan_sec ||control_stat==set_zhengzhuan_sec) && main_stat == control)	//退出到控制状态 找到设备状态
+		{
+			control_stat = find_ok_dev;
+		}			
+		else if(main_stat == control && control_stat!=set_zhengzhuan_sec && control_stat!=set_fangzhuan_sec)  //退出到待机状态
+		{
+			main_stat = password_ok;
+		}
 	}
 
 	
@@ -371,8 +470,10 @@ void btn_handle(void)
 void btn_0_9_callback(int i)
 {
 	beep();
+	
 	if(smg_cur>=smg_cur_end)
 		smg_cur = smg_cur_begin;
+		
 	sed_smg_number(smg_cur,btn_to_num[i]); 
 	smg_value[smg_cur] = btn_to_num[i];
 	smg_cur++;
@@ -385,13 +486,19 @@ void btn_0_9_callback(int i)
 	display_code[3] |= 0x80;
 	
 	display_code[smg_cur] &= 0x7f;
-	
+
+	if(control_stat==find_none_dev && main_stat == control)
+	{
+		control_stat = find_dev;
+	}
 }
 
+
+//确认按钮
 void btn_enter()
 {
 	beep();
-	if(main_stat == power_on)
+	if(main_stat == power_on)   //开机状告下按下确认键 进行密码校验
 	{
 		if(smg_value[0] == (password/1000) && smg_value[1] == (password%1000/100) && smg_value[2] == (password%100/10) && smg_value[3] == (password%10))
 		{
@@ -405,9 +512,11 @@ void btn_enter()
 			sed_smg(2,0xff);
 			sed_smg(3,0xff);				
 		}
-		else if(btn_event[6].up == 1 && smg_value[0] == 6 && smg_value[1] == 6 && smg_value[2] == 6 && smg_value[3] == 6)
+		else if(btn_event[6].up == 1 && smg_value[0] == 6 && smg_value[1] == 6 && smg_value[2] == 6 && smg_value[3] == 6)  //超级密码  * 6 6 6 6
 		{
 			main_stat = password_ok;
+			btn_event[6].up = 0;
+			btn_event[6].down = 0;			
 			smg_value[0] = -1;
 			smg_value[1] = -1;
 			smg_value[2] = -1;
@@ -425,11 +534,13 @@ void btn_enter()
 			smg_value[3] = -1;
 		}
 	}
-	else if(main_stat == password_ok)
+	else if(main_stat == password_ok)     //密码正确 进入待机状态
 	{
-		if(btn_event[6].up == 1 && smg_value[0] !=0 && smg_value[1] !=0 && smg_value[2] !=0 && smg_value[3] !=0 )		
+		if(btn_event[6].up == 1 && smg_value[0] !=-1 && smg_value[1] !=-1 && smg_value[2] !=-1 && smg_value[3] !=-1 )		 //待机状态按下*+确认按键后 默认为修改密码功能
 		{
 			password = smg_value[0]*1000+smg_value[1]*100+smg_value[2]*10+smg_value[3];
+			btn_event[6].up = 0;
+			btn_event[6].down = 0;
 			write_password(password);
 			smg_value[0] = -1;
 			smg_value[1] = -1;
@@ -438,6 +549,35 @@ void btn_enter()
 			main_stat = power_on;
 		}
 	}
+
+	else if(main_stat == control)   //控制状态
+	{
+		if(control_stat ==set_fangzhuan_sec )	 //反转显示状态
+		{
+			//发送修改反转时间指令
+		}		
+		else if(control_stat==set_zhengzhuan_sec)  //正转显示状态
+		{
+			//发送修改正转时间指令
+		}
+		rf_send(data,4);
+	}
+		
+	else if(main_stat == set_current)  //设置电流状态
+	{
+		 if(smg_value[0] ==-1 || smg_value[1] ==-1 || smg_value[2] ==-1 || smg_value[3] ==-1 )	 //没有按键值
+		 {
+			 if(current_value >0)
+			 {
+					//设置电流值
+			 }
+		 }
+		 else if(smg_value[0] !=-1 && smg_value[1] !=-1 && smg_value[2] !=-1 && smg_value[3] !=-1)
+		 {
+			 //获取电流值
+		 }
+		 
+	}	
 }
 
 
@@ -445,18 +585,18 @@ void btn_enter()
 
 void beep()
 {
-	int delay = 10000;
-	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
-	while(delay--);
-	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
+//	int delay = 10000;
+//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
+//	while(delay--);
+//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
 }
 
 void beep_long(void)
 {
-	int delay = 1000000;
-	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
-	while(delay--);
-	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
+//	int delay = 1000000;
+//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
+//	while(delay--);
+//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
 }
 
 

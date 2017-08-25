@@ -15,6 +15,16 @@ typedef enum _main_stat
 	
 }enmu_main_stat;
 
+typedef enum _control_stat
+{
+	find_dev,
+	find_none_dev,
+	find_ok_dev,
+	set_zhengzhuan_sec,
+	set_fangzhuan_sec,
+}enmu_control_stat;
+
+
 
 extern enmu_main_stat main_stat ;
 extern signed char smg_value[4];

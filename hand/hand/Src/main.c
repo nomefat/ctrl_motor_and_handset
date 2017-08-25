@@ -119,11 +119,7 @@ int main(void)
 	else
 		main_stat = power_on;
 	
-write_password(0x12345678);
 
-	
-
-//	write_password(0x44448888);
   /* USER CODE END 2 */
 
   /* Infinite loop */
