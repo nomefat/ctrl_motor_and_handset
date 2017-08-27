@@ -1608,10 +1608,13 @@
     <group>
         <name>FWlib</name>
         <file>
-            <name>$PROJ_DIR$\..\FWlib\src\stm8s_adc2.c</name>
+            <name>$PROJ_DIR$\..\FWlib\src\stm8s_adc1.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\FWlib\src\stm8s_clk.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\FWlib\src\stm8s_flash.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\FWlib\src\stm8s_gpio.c</name>
@@ -1629,9 +1632,6 @@
     <group>
         <name>USER</name>
         <file>
-            <name>$PROJ_DIR$\..\USER\adc.c</name>
-        </file>
-        <file>
             <name>$PROJ_DIR$\..\USER\drv_delay.c</name>
         </file>
         <file>
@@ -1641,9 +1641,6 @@
             <name>$PROJ_DIR$\..\USER\drv_spi.c</name>
         </file>
         <file>
-            <name>$PROJ_DIR$\..\USER\flash_eeprom.c</name>
-        </file>
-        <file>
             <name>$PROJ_DIR$\..\USER\main.c</name>
         </file>
         <file>
@@ -1651,12 +1648,6 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\USER\stm8s_interruput.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\USER\tim1.c</name>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\..\USER\uart.c</name>
         </file>
     </group>
 </project>

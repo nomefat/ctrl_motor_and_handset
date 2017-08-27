@@ -22,9 +22,9 @@
 
 
 /** 配置和选项定义 */
-#define DYNAMIC_PACKET      1 		//1:动态数据包, 0:固定
-#define FIXED_PACKET_LEN    32		//包长度
-#define REPEAT_CNT          15		//重复次数
+#define DYNAMIC_PACKET      0 		//1:动态数据包, 0:固定
+#define FIXED_PACKET_LEN    12		//包长度
+#define REPEAT_CNT          0		//重复次数
 #define INIT_ADDR           0x34,0x43,0x10,0x10,0x01
 
 /** RF24L01硬件IO定义 */
@@ -194,6 +194,77 @@ typedef enum PowerType
 #define IRQ_ALL  ( (1<<RX_DR) | (1<<TX_DS) | (1<<MAX_RT) )
 
 
+#pragma pack(1)
+
+typedef struct _rf_cmd
+{
+	unsigned short head;
+	unsigned short id;
+	unsigned short code;
+	unsigned char cmd;
+	unsigned int data;
+	unsigned char crc;
+#define CMD_HAND_ZZ                   1	 //遥控正转指令
+#define CMD_HAND_FZ                   2	 //遥控反转指令	
+#define CMD_HAND_GET_DEV_STAT         3  //遥控获取设备状态指令
+#define CMD_HAND_SET_DEV_ZZ_SEC       4  //遥控设置设备正转时间
+#define CMD_HAND_SET_DEV_FZ_SEC       5  //遥控设置设备反转时间
+#define CMD_HAND_GET_DEV_ZZ_SEC       6  //遥控获取设备正转时间
+#define CMD_HAND_GET_DEV_FZ_SEC       7  //遥控获取设备反转时间	
+#define CMD_HAND_SET_DEV_ID           8  //遥控设置设备ID
+#define CMD_HAND_SET_DEV_CODE         9  //遥控设置设备区域编码
+#define CMD_HAND_SET_DEV_CURRENT_L    10  //遥控设置设备电流等级
+#define CMD_HAND_GET_DEV_CURRENT_L    11  //遥控设置设备电流等级	
+#define CMD_HAND_SET_LOCK_TIME        12  //设置锁定时间
+
+	
+	
+#define CMD_DEV_STAT                  50   //设备返回状态	
+#define CMD_DEV_ZZ_SEC                51   //设备返回正转时间
+#define CMD_DEV_FZ_SEC                52   //设备返回反转时间	
+#define CMD_DEV_NEW_ID                53   //设备返回新ID，然后会切换ID
+#define CMD_DEV_NEW_CODE              54   //设备返回新CODE 然后会切换CODE
+#define CMD_DEV_CURRENT_L             55   //设备返回电流等级
+#define CMD_DEV_LOCK_TIME             56	 //返回锁定时间
+	
+	
+	
+}struct_rf_cmd;
+
+#pragma pack()
+
+
+ typedef enum _enum_motor_status
+{
+  none,              
+  forward,                  //正转
+  forward_to_stop,          //正转停止
+  forward_time_to_stop,     //正转时间到了停止
+  reverse,                  //反转
+  reverse_to_stop,        //反转停止
+  reverse_time_to_stop,     //反转时间到了停止
+  forward_overflow_to_stop,  //正转电流超限制后停止
+  reverse_voceflow_to_stop,  //反转电流超限制后停止
+}enummotor_status;
+
+
+
+typedef struct _system_param
+{
+  u8 head;
+  s32 time_left ;                    // 剩余秒数 ，为0时不可操作
+  u16 area_code ;                    //区域码
+  u16 id;                        //本机ID
+  u8 forward_time;              //正转时间
+  u8 reverse_time;              //反转时间
+  u8 current_chose;
+  u16 current_threshold[5];      //电流阈值
+  
+  
+}struct__system_param; 
+
+
+
 
 uint8_t NRF24L01_Read_Reg( uint8_t RegAddr );
 void NRF24L01_Read_Buf( uint8_t RegAddr, uint8_t *pBuf, uint8_t len );
@@ -222,7 +293,8 @@ uint8_t NRF24L01_TxPacket( uint8_t *txbuf, uint8_t Length );
 uint8_t NRF24L01_RxPacket( uint8_t *rxbuf );
 void NRF24L01_Gpio_Init( void );
 void RF24L01_Init( void );	
-
-
+void rf_rx();
+void rf_rx_();
+void rf_rx_data_handle();
 #endif
 

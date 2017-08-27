@@ -3,16 +3,23 @@
 #include "btn_display.h"
 #include "main_stat.h"
 #include "bsp_spi_nrf.h"
+#include "rf.h"
 
 
-int time_sec;
-int time_100ms;
+
+
+
+uint32_t time_sec;
+uint32_t time_100ms;
 
 uint32_t password = 0;
 
 enmu_main_stat main_stat ;
 
 enmu_control_stat control_stat;
+
+enmu_control_stat set_current_stat;
+
 
 signed char smg_value[4] = {-1,-1,-1,-1};
 
@@ -24,11 +31,22 @@ unsigned char smg_cur_end = 4;
 int8_t zhengzhuan_sec = -1;
 int8_t fangzhuan_sec = -1;
 
-int8_t current_value = -1;
+uint32_t current_value = -1;
+
+uint16_t dev_id = -1;
+
+uint32_t find_dev_begin = 0;
+
+uint16_t timeout_power_off = 0;
+
+uint32_t rf_get_sec_flag = 0;
+
 
 void main_stat_poll(void)
 {
-
+	static uint32_t now_time = 0;
+	
+	
 	if(main_stat == rf_error)    //射频错误
 	{
 		if(time_100ms%2)		
@@ -105,7 +123,25 @@ void main_stat_poll(void)
 
 		if(control_stat==find_dev)        //找设备
 		{
-
+			if(find_dev_begin >0)
+			{
+				if(time_100ms%2 == 0 && now_time != time_100ms)
+				{
+					led(LED2,1);
+					now_time = time_100ms;
+					rf_send_cmd(dev_id,CMD_HAND_GET_DEV_STAT,0);    //搜索设备
+					
+				}	
+				else if(time_100ms%2 == 1 )
+					led(LED2,0);
+				
+				if(time_sec - find_dev_begin >3)
+				{
+					find_dev_begin = 0;
+					control_stat = find_none_dev;
+					led(LED2,0);
+				}
+			}
 			
 		}
 		else if(control_stat==find_none_dev)  //没找到设备  闪烁编号
@@ -130,23 +166,54 @@ void main_stat_poll(void)
 			sed_smg(0,0xbf);
 			sed_smg(1,0xbf);			
 			sed_smg(2,0xbf);	
-			if(time_100ms%3 == 0) //定时询问设备状态
+			if(time_sec%2 == 0 && now_time != time_sec)
 			{
+				led(LED2,1);
+				now_time = time_sec;
+				rf_send_cmd(dev_id,CMD_HAND_GET_DEV_STAT,0);    //定时获取状态
 				
-			}				
+			}	
+			else if(time_sec%2 == 1 )
+				led(LED2,0);		
+			
 		}
 		else if(control_stat==set_zhengzhuan_sec)    //获取设备正转时间 可以修改
 		{
-			if(zhengzhuan_sec == -1 && time_100ms%3 == 0)
+			if(time_100ms%2 == 0 && now_time != time_100ms && zhengzhuan_sec<0)
 			{
-				 //获取正转时间
+				led(LED2,1);
+				now_time = time_100ms;
+				rf_send_cmd(dev_id,CMD_HAND_GET_DEV_ZZ_SEC,0);    //搜索设备
+				
+			}	
+			else if(time_100ms%2 == 1 )
+				led(LED2,0);
+			
+			
+			if(time_sec - rf_get_sec_flag>3)
+			{
+				rf_get_sec_flag = 0;
+				control_stat = find_ok_dev;
+				led(LED2,0);
 			}
 		}
 		else if(control_stat==set_zhengzhuan_sec)    //获取设备反转时间 可以修改
 		{
-			if(fangzhuan_sec == -1 && time_100ms%3 == 0)
+			if(time_100ms%2 == 0 && now_time != time_100ms && fangzhuan_sec<0)
 			{
-				//获取反转时间
+				led(LED2,1);
+				now_time = time_100ms;
+				rf_send_cmd(dev_id,CMD_HAND_GET_DEV_FZ_SEC,0);    //搜索设备
+				
+			}	
+			else if(time_100ms%2 == 1 )
+				led(LED2,0);
+			
+			if(time_sec - rf_get_sec_flag>3)
+			{
+				rf_get_sec_flag = 0;
+				control_stat = find_ok_dev;
+				led(LED2,0);
 			}			
 		}
 
@@ -158,8 +225,58 @@ void main_stat_poll(void)
 	}
 	else if(main_stat == set_current)  //设置电流限值状态
 	{
-		
+		if(set_current_stat==find_dev)        //找设备
+		{
+			if(find_dev_begin >0)
+			{
+				if(time_100ms%2 == 0 && now_time != time_100ms)
+				{
+					led(LED1,1);
+					now_time = time_100ms;
+					rf_send_cmd(dev_id,CMD_HAND_GET_DEV_CURRENT_L,0);    //搜索设备
+					
+				}	
+				else if(time_100ms%2 == 1 )
+					led(LED1,0);
+				
+				if(time_sec - find_dev_begin >3)
+				{
+					find_dev_begin = 0;
+					set_current_stat = find_none_dev;
+					led(LED1,0);
+				}
+			}
+			
+		}
+		else if(set_current_stat==find_none_dev)  //没找到设备  闪烁编号
+		{
+			if(time_100ms%2)
+			{
+				sed_smg_number(0,smg_value[0]);
+				sed_smg_number(1,smg_value[1]);			
+				sed_smg_number(2,smg_value[2]);			
+				sed_smg_number(3,smg_value[3]);
+			}
+			else
+			{
+				sed_smg(0,0xff);
+				sed_smg(1,0xff);			
+				sed_smg(2,0xff);			
+				sed_smg(3,0xff);			
+			}			
+		}
+		else if(set_current_stat==find_ok_dev)    //已经找到设备 定时读取设备的状态
+		{
+			sed_smg(0,0xbf);
+			sed_smg(1,0xbf);			
+			sed_smg(2,0xbf);	
+			if(time_100ms%3 == 0) //定时询问设备状态
+			{
+				
+			}				
+		}		
 	}		
+	
 	else if(main_stat == set_encoding) //设置编码状态
 	{
 		

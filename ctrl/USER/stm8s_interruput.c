@@ -5,10 +5,14 @@
 #include "stm8s.h"
 #include "uart.h"
 #include "adc.h"
+#include "drv_RF24L01.h"
 extern void Delay(u16 nCount);
 u8 RxBuffer[RxBufferSize];
 u8 UART_RX_NUM=0;
 u16 Conversion_Value;
+extern u32 AD_result;
+
+
 
 #pragma vector=1
 __interrupt void TRAP_IRQHandler(void)
@@ -80,16 +84,33 @@ __interrupt void SPI_IRQHandler(void)
 {
   
 }
+
+extern enummotor_status motor_status;
+extern u32 time_sec;
+extern u16 pwm_val;
+u16 time_ms = 0;
 #pragma vector=0xD
 __interrupt void TIM1_UPD_OVF_TRG_BRK_IRQHandler(void)
 {
+
+  if(time_ms%100 == 0)
+  {
+    if((motor_status == forward || motor_status == reverse) && pwm_val<1000)
+    {
+      pwm_val += 50;
+      PWM_set_DutyCycle(pwm_val);
+    }
+  }
   
-    Conversion_Value = ADC2_GetConversionValue();
-    UART1_SendString("ADC_CONVERSION AD_Value:",sizeof("ADC_CONVERSION AD_Value:"));
-    Delay(0xffff);
-    Delay(0xffff);
-    Send_ADC_Value(Conversion_Value);
-    TIM1_ClearITPendingBit(TIM1_IT_UPDATE);
+  
+  if(time_ms++ >=1000)
+  {
+    time_ms = 0;
+    time_sec++;   
+  }
+
+ 
+  TIM1_ClearITPendingBit(TIM1_IT_UPDATE);
 }
 #pragma vector=0xE
 __interrupt void TIM1_CAP_COM_IRQHandler(void)
@@ -204,14 +225,48 @@ __interrupt void ADC2_IRQHandler(void)
 {
        /* Get converted value */
     Conversion_Value = ADC2_GetConversionValue();
-    Send_ADC_Value(Conversion_Value);
+//    Send_ADC_Value(Conversion_Value);
     ADC2_ClearITPendingBit();
 }
 #else
 #pragma vector=0x18
 __interrupt void ADC1_IRQHandler(void)
 {
-   
+  AD_result = 0;
+  Conversion_Value = ADC1->DB0RL;
+  Conversion_Value += (u16)(ADC1->DB0RH)<<8;
+  AD_result +=Conversion_Value;
+  Conversion_Value = ADC1->DB1RL;
+  Conversion_Value += (u16)(ADC1->DB1RH)<<8;
+  AD_result +=Conversion_Value;  
+  Conversion_Value = ADC1->DB2RL;
+  Conversion_Value += (u16)(ADC1->DB2RH)<<8;
+  AD_result +=Conversion_Value;    
+  Conversion_Value = ADC1->DB3RL;
+  Conversion_Value += (u16)(ADC1->DB3RH)<<8;
+  AD_result +=Conversion_Value;    
+  Conversion_Value = ADC1->DB4RL;
+  Conversion_Value += (u16)(ADC1->DB5RH)<<8;
+  AD_result +=Conversion_Value;    
+   Conversion_Value = ADC1->DB5RL;
+  Conversion_Value += (u16)(ADC1->DB5RH)<<8;
+  AD_result +=Conversion_Value;   
+  Conversion_Value = ADC1->DB6RL;
+  Conversion_Value += (u16)(ADC1->DB6RH)<<8;
+  AD_result +=Conversion_Value;  
+  Conversion_Value = ADC1->DB7RL;
+  Conversion_Value += (u16)(ADC1->DB7RH)<<8;
+  AD_result +=Conversion_Value;  
+  Conversion_Value = ADC1->DB8RL;
+  Conversion_Value += (u16)(ADC1->DB8RH)<<8;
+  AD_result +=Conversion_Value;  
+  Conversion_Value = ADC1->DB9RL;
+  Conversion_Value += (u16)(ADC1->DB9RH)<<8;
+  AD_result +=Conversion_Value;    
+  
+  AD_result = AD_result/10;
+  
+  ADC1_ClearITPendingBit(ADC1_IT_EOC);
 }
 #endif
 #ifdef STM8S903

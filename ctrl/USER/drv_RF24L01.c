@@ -17,9 +17,12 @@
   
 #include "drv_RF24L01.h"
 #include "drv_delay.h"
-
+#include "pwm.h"
 
 const char *g_ErrorString = "RF24L01 is not find !...";
+
+
+
 
 
 /**
@@ -454,7 +457,7 @@ void NRF24L01_check( void )
 	uint8_t i;
 	uint8_t buf[5]={ 0XA5, 0XA5, 0XA5, 0XA5, 0XA5 };
 	uint8_t read_buf[ 5 ] = { 0 };
-	 
+	uint8_t stat = 0; 
 	while( 1 )
 	{
 		NRF24L01_Write_Buf( TX_ADDR, buf, 5 );			//写入5个字节的地址
@@ -469,14 +472,29 @@ void NRF24L01_check( void )
 		
 		if( 5 == i )
 		{
-			break;
+                  break;
+                  
 		}
 		else
 		{
 //			drv_uart_tx_bytes( (uint8_t *)g_ErrorString, 26 );
+                  if(stat)
+                  {
+                    stat = 0;
+                    led(LED2,1);
+                    led(LED3,1);
+                  }
+                  else
+                  {
+                    stat = 1;
+                    led(LED2,0);
+                    led(LED3,0);                   
+                  }
 		}
 		drv_delay_ms( 2000 );
 	}
+        led(LED2,0);
+        led(LED3,0);          
 }
 
  /**
@@ -493,13 +511,13 @@ void RF24L01_Set_Mode( nRf24l01ModeType Mode )
 	
     if( Mode == MODE_TX )       
 	{
-		controlreg &= ~( 1<< PRIM_RX );
+		controlreg  = 0x0e;
 	}
     else 
 	{
 		if( Mode == MODE_RX )  
 		{ 
-			controlreg |= ( 1<< PRIM_RX ); 
+			controlreg = 0x0f;
 		}
 	}
 
@@ -607,7 +625,7 @@ void NRF24L01_Gpio_Init( void )
 {
 	//CE配置为推挽输出 IRQ上拉输入
 	GPIO_Init( RF24L01_CE_GPIO_PORT, RF24L01_CE_GPIO_PIN, GPIO_MODE_OUT_PP_HIGH_FAST );
-	GPIO_Init( RF24L01_IRQ_GPIO_PORT, RF24L01_IRQ_GPIO_PIN, GPIO_MODE_IN_PU_NO_IT );
+	GPIO_Init( RF24L01_IRQ_GPIO_PORT, RF24L01_IRQ_GPIO_PIN, GPIO_MODE_IN_FL_NO_IT );
 	
 	RF24L01_SET_CE_LOW( );		//使能设备
 	RF24L01_SET_CS_HIGH( );		//取消SPI片选
@@ -634,21 +652,226 @@ void RF24L01_Init( void )
 	
 #elif DYNAMIC_PACKET == 0
     
-    L01_WriteSingleReg( L01REG_RX_PW_P0, FIXED_PACKET_LEN );	//固定数据长度
+    NRF24L01_Write_Reg( 0x20+0x11, FIXED_PACKET_LEN );	//固定数据长度
 	
 #endif	//DYNAMIC_PACKET
 
     NRF24L01_Write_Reg( CONFIG, /*( 1<<MASK_RX_DR ) |*/		//接收中断
                                       ( 1 << EN_CRC ) |     //使能CRC 1个字节
                                       ( 1 << PWR_UP ) );    //开启设备
-    NRF24L01_Write_Reg( EN_AA, ( 1 << ENAA_P0 ) );   		//通道0自动应答
+    NRF24L01_Write_Reg( EN_AA, ( 0 << ENAA_P0 ) );   		//通道0自动应答
     NRF24L01_Write_Reg( EN_RXADDR, ( 1 << ERX_P0 ) );		//通道0接收
     NRF24L01_Write_Reg( SETUP_AW, AW_5BYTES );     			//地址宽度 5个字节
     NRF24L01_Write_Reg( SETUP_RETR, ARD_4000US |
                         ( REPEAT_CNT & 0x0F ) );         	//重复等待时间 250us
-    NRF24L01_Write_Reg( RF_CH, 60 );             			//初始化通道
-    NRF24L01_Write_Reg( RF_SETUP, 0x26 );
+    NRF24L01_Write_Reg( RF_CH, 5 );             			//初始化通道
+    NRF24L01_Write_Reg( RF_SETUP, 0x07 );
 
     NRF24L01_Set_TxAddr( &addr[0], 5 );                      //设置TX地址
     NRF24L01_Set_RxAddr( 0, &addr[0], 5 );                   //设置RX地址
 }
+
+u8 rx_buff[12];
+u8 tx_buff[12];
+extern u32 time_sec;
+u8 a = 0;
+void rf_rx()
+{
+  static u32 time_sec_rf = 0;
+  uint8_t l_Status = 0, l_RxLength = 0;
+  
+  a = GPIOD->IDR;
+  
+  
+  if( RF24L01_GET_IRQ_STATUS( )==1)  
+  {
+    if(time_sec - time_sec_rf >10)
+    {
+      time_sec_rf = time_sec;
+      NRF24L01_Gpio_Init( );
+      RF24L01_Init( );
+      RF24L01_Set_Mode( MODE_RX );
+    }
+    return;
+  }
+  else
+  {
+      l_Status = NRF24L01_Read_Reg( STATUS );		//读状态寄存器
+      NRF24L01_Write_Reg( STATUS,l_Status );		//清中断标志
+      if( l_Status & RX_OK)	//接收到数据
+      {
+          l_RxLength = NRF24L01_Read_Reg( R_RX_PL_WID );		//读取接收到的数据个数
+          NRF24L01_Read_Buf( RD_RX_PLOAD,rx_buff,l_RxLength );	//接收到数据 
+          NRF24L01_Write_Reg( FLUSH_RX,0xff );				//清除RX FIFO         
+      }    
+  }
+}
+
+extern u16 time_ms;
+void rf_rx_()
+{
+  static u32 time_sec_rf = 0;
+  uint8_t l_Status = 0, l_RxLength = 0;
+  static u16 t = 0;
+  
+  
+  
+  if(t != time_ms/100)
+  {
+    t = time_ms/100;
+    l_Status = NRF24L01_Read_Reg( STATUS );		//读状态寄存器
+    NRF24L01_Write_Reg( STATUS,l_Status );		//清中断标志
+    if( l_Status & RX_OK)	//接收到数据
+      {
+          time_sec_rf = time_sec;
+          l_RxLength = NRF24L01_Read_Reg( R_RX_PL_WID );		//读取接收到的数据个数
+          NRF24L01_Read_Buf( RD_RX_PLOAD,rx_buff,l_RxLength );	//接收到数据 
+          NRF24L01_Write_Reg( FLUSH_RX,0xff );				//清除RX FIFO      
+          led(LED2,1); 
+          rf_rx_data_handle();
+          drv_delay_ms(100);
+          led(LED2,0); 
+      }     
+  }
+  
+  if(time_sec - time_sec_rf >10)
+  {
+      time_sec_rf = time_sec;
+      NRF24L01_Gpio_Init( );
+      RF24L01_Init( );
+      RF24L01_Set_Mode( MODE_RX );
+      led(LED3,1); 
+      drv_delay_ms(200);
+      led(LED3,0); 
+  }
+  
+  
+}
+
+extern struct__system_param system_param; 
+extern enummotor_status motor_status;
+
+
+void rf_tx(u8 cmd,u32 data)
+{
+  uint8_t l_Status = 0;
+  uint16_t l_MsTimes = 0;
+  
+  struct_rf_cmd *ptr_rx = (struct_rf_cmd *)tx_buff;
+  
+  ptr_rx->head = 0xaa55;
+  ptr_rx->cmd = cmd;
+  ptr_rx->data = data;
+  ptr_rx->id = system_param.id;
+  ptr_rx->crc = 0;  
+  
+  RF24L01_Set_Mode( MODE_TX );  
+  drv_delay_ms(10);
+
+  RF24L01_SET_CS_LOW( );		//片选
+  drv_spi_read_write_byte( FLUSH_TX );
+  RF24L01_SET_CS_HIGH( );
+
+  RF24L01_SET_CE_LOW( );		
+  NRF24L01_Write_Buf( WR_TX_PLOAD, tx_buff, 12 );	//写数据到TX BUF 32字节  TX_PLOAD_WIDTH
+  RF24L01_SET_CE_HIGH( );			//启动发送  
+
+  drv_delay_ms(10);
+  RF24L01_Set_Mode( MODE_RX );
+}
+
+
+
+
+
+
+
+
+
+
+
+void rf_rx_data_handle()
+{
+  struct_rf_cmd *ptr_rx = (struct_rf_cmd *)rx_buff;
+  
+  if(ptr_rx->head != 0x55aa)
+    return;
+  
+  switch(ptr_rx->cmd)
+  {
+    case CMD_HAND_ZZ               :    
+      if(motor_status == forward)
+      {
+        
+      }
+      else if(motor_status == reverse)
+      {
+        motor_status = forward_to_stop;
+        motor_stop();
+      }
+      else
+      {
+        motor_forward();
+      }
+      break;//遥控正转指令
+    case CMD_HAND_FZ              :    
+       if(motor_status == forward)
+      {
+        motor_status = reverse_to_stop;
+        motor_stop();
+      }
+      else if(motor_status == reverse)
+      {
+        
+      }
+      else
+      {
+        motor_reverse();
+      }   
+      break;//遥控反转指令	
+    case CMD_HAND_GET_DEV_STAT    :    
+      rf_tx(CMD_DEV_STAT,motor_status);
+      break;   //遥控获取设备状态指令
+    case CMD_HAND_SET_DEV_ZZ_SEC   :    
+      
+      break;  //遥控设置设备正转时间
+    case CMD_HAND_SET_DEV_FZ_SEC   :     
+      
+      break; //遥控设置设备反转时间
+    case CMD_HAND_GET_DEV_ZZ_SEC   :    
+      
+      break; //遥控获取设备正转时间
+    case CMD_HAND_GET_DEV_FZ_SEC   :     
+      
+      break; //遥控获取设备反转时间	
+    case CMD_HAND_SET_DEV_ID       :     
+      
+      break; //遥控设置设备ID
+    case CMD_HAND_SET_DEV_CODE     :     
+      
+      break; //遥控设置设备区域编码
+    case CMD_HAND_SET_DEV_CURRENT_L :    
+      
+      break;//遥控设置设备电流等级
+    case CMD_HAND_GET_DEV_CURRENT_L  :   
+      
+      break; //遥控设置设备电流等级	
+    case CMD_HAND_SET_LOCK_TIME     :    
+      
+      break; //设置锁定时间    
+  default :break;
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+}
+

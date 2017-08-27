@@ -2,6 +2,9 @@
 #include "stm32f1xx_hal.h"
 #include "btn_display.h"
 #include "main_stat.h"
+#include "rf.h"
+
+
 
 
 typedef struct _btn_status_count
@@ -71,14 +74,20 @@ extern void rf_send(void *pdata,uint8_t len);
 extern uint8_t data[10];
 	
 extern enmu_control_stat control_stat;
+extern enmu_control_stat set_current_stat;
+
 	
 extern int8_t zhengzhuan_sec ;
 extern int8_t fangzhuan_sec ;	
 extern	int8_t current_value;
+extern	uint16_t dev_id ;
 	
-	
-	
-	
+extern	int8_t find_dev_begin;
+extern uint16_t timeout_power_off;	
+
+extern int8_t rf_get_sec_flag;
+
+
 void btn_0_9_callback(int i);
 void btn_enter();
 
@@ -290,7 +299,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	time++;
 	if(time%500 == 0)
 	{
-
+		timeout_power_off++;
+		if(timeout_power_off > TIME_OUT_POWER_OFF)
+		{
+			beep_long();
+			HAL_GPIO_WritePin(power_enable_GPIO_Port,power_enable_Pin,GPIO_PIN_RESET); //关机	
+		}
 		time_sec++;
 	}
 	if(time%50 == 0)
@@ -319,6 +333,8 @@ void btn_handle(void)
 		}
 		else
 		{
+			btn_event[21].down = 0;
+			btn_event[21].up = 0;			
 			beep_long();
 			HAL_GPIO_WritePin(power_enable_GPIO_Port,power_enable_Pin,GPIO_PIN_RESET); //关机	
 		}
@@ -332,6 +348,8 @@ void btn_handle(void)
 	if(i>=21)
 		return;
 	
+	
+	timeout_power_off = 0;
 	btn_event[i].up = 0;
 	btn_event[i].down = 0;
 	
@@ -400,7 +418,7 @@ void btn_handle(void)
 		beep();
 		if(control_stat==find_ok_dev && main_stat == control)  //控制状态下，已经找到设备
 		{
-			control_stat = find_dev;
+			rf_send_cmd(dev_id,CMD_HAND_ZZ,0);    //发送正转指令
 		}		
 	}
 	else if(i==F_DOWN)   //下
@@ -408,7 +426,7 @@ void btn_handle(void)
 		beep();
 		if(control_stat==find_ok_dev && main_stat == control)  //控制状态下，已经找到设备
 		{
-			control_stat = find_dev;
+			rf_send_cmd(dev_id,CMD_HAND_ZZ,0);    //发送反转指令
 		}			
 	}	
 	else if(i==F_ENTER)  //确认按键
@@ -421,6 +439,7 @@ void btn_handle(void)
 		if(control_stat==find_ok_dev && main_stat == control)  //控制状态下，已经找到设备
 		{
 			control_stat = set_zhengzhuan_sec;
+			rf_get_sec_flag = time_sec;
 			zhengzhuan_sec = -1;
 			smg_cur_begin = 2;
 			sed_smg(0,S);
@@ -431,6 +450,7 @@ void btn_handle(void)
 		else if(control_stat==set_zhengzhuan_sec && main_stat == control)  //控制状态下,获取正转时间
 		{
 			control_stat = set_fangzhuan_sec;
+			rf_get_sec_flag = time_sec;
 			fangzhuan_sec = -1;
 			sed_smg(0,R);	
 			sed_smg(1,0XBF);		
@@ -440,6 +460,7 @@ void btn_handle(void)
 		else if(control_stat==set_fangzhuan_sec && main_stat == control)  //控制状态下，获取反转时间
 		{
 			control_stat = set_zhengzhuan_sec;
+			rf_get_sec_flag = time_sec;
 			zhengzhuan_sec = -1;
 			sed_smg(0,S);		
 			sed_smg(1,0XBF);		
@@ -458,7 +479,40 @@ void btn_handle(void)
 		else if(main_stat == control && control_stat!=set_zhengzhuan_sec && control_stat!=set_fangzhuan_sec)  //退出到待机状态
 		{
 			main_stat = password_ok;
+			control_stat = find_dev;
+			smg_value[0] = -1;
+			smg_value[1] = -1;
+			smg_value[2] = -1;
+			smg_value[3] = -1;		
+			sed_smg(0,0xff);
+			sed_smg(1,0xff);			
+			sed_smg(2,0xff);
+			sed_smg(3,0xff);			
 		}
+		else if(main_stat == set_current)  //退出到待机状态
+		{
+			main_stat = password_ok;
+			smg_value[0] = -1;
+			smg_value[1] = -1;
+			smg_value[2] = -1;
+			smg_value[3] = -1;		
+			sed_smg(0,0xff);
+			sed_smg(1,0xff);			
+			sed_smg(2,0xff);
+			sed_smg(3,0xff);			
+		}		
+		else if(main_stat == set_encoding)  //退出到待机状态
+		{
+			main_stat = password_ok;
+			smg_value[0] = -1;
+			smg_value[1] = -1;
+			smg_value[2] = -1;
+			smg_value[3] = -1;		
+			sed_smg(0,0xff);
+			sed_smg(1,0xff);			
+			sed_smg(2,0xff);
+			sed_smg(3,0xff);			
+		}				
 	}
 
 	
@@ -491,6 +545,7 @@ void btn_0_9_callback(int i)
 	{
 		control_stat = find_dev;
 	}
+	
 }
 
 
@@ -498,6 +553,7 @@ void btn_0_9_callback(int i)
 void btn_enter()
 {
 	beep();
+	rf_send(data,4);
 	if(main_stat == power_on)   //开机状告下按下确认键 进行密码校验
 	{
 		if(smg_value[0] == (password/1000) && smg_value[1] == (password%1000/100) && smg_value[2] == (password%100/10) && smg_value[3] == (password%10))
@@ -552,7 +608,23 @@ void btn_enter()
 
 	else if(main_stat == control)   //控制状态
 	{
-		if(control_stat ==set_fangzhuan_sec )	 //反转显示状态
+		if(control_stat==find_dev) 
+		{
+			dev_id = smg_value[0]*1000+smg_value[1]*100+smg_value[2]*10+smg_value[3];
+			find_dev_begin = time_sec;
+		}
+		else if (control_stat==find_none_dev)
+		{
+			dev_id = smg_value[0]*1000+smg_value[1]*100+smg_value[2]*10+smg_value[3];
+			find_dev_begin = time_sec;	
+			control_stat = find_dev	;		
+			sed_smg_number(0,smg_value[0]);
+			sed_smg_number(1,smg_value[1]);			
+			sed_smg_number(2,smg_value[2]);			
+			sed_smg_number(3,smg_value[3]);			
+		}
+		
+		else if(control_stat ==set_fangzhuan_sec )	 //反转显示状态
 		{
 			//发送修改反转时间指令
 		}		
@@ -560,11 +632,30 @@ void btn_enter()
 		{
 			//发送修改正转时间指令
 		}
-		rf_send(data,4);
+		
 	}
 		
 	else if(main_stat == set_current)  //设置电流状态
 	{
+		if(set_current_stat==find_dev) 
+		{
+			dev_id = smg_value[0]*1000+smg_value[1]*100+smg_value[2]*10+smg_value[3];
+			find_dev_begin = time_sec;
+		}
+		else if (set_current_stat==find_none_dev)
+		{
+			dev_id = smg_value[0]*1000+smg_value[1]*100+smg_value[2]*10+smg_value[3];
+			find_dev_begin = time_sec;	
+			set_current_stat = find_dev	;		
+			sed_smg_number(0,smg_value[0]);
+			sed_smg_number(1,smg_value[1]);			
+			sed_smg_number(2,smg_value[2]);			
+			sed_smg_number(3,smg_value[3]);			
+		}		
+		
+		else if(set_current_stat==find_ok_dev)
+		{
+		
 		 if(smg_value[0] ==-1 || smg_value[1] ==-1 || smg_value[2] ==-1 || smg_value[3] ==-1 )	 //没有按键值
 		 {
 			 if(current_value >0)
@@ -577,6 +668,7 @@ void btn_enter()
 			 //获取电流值
 		 }
 		 
+	 }
 	}	
 }
 
@@ -585,18 +677,18 @@ void btn_enter()
 
 void beep()
 {
-//	int delay = 10000;
-//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
-//	while(delay--);
-//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
+	int delay = 10000;
+	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
+	while(delay--);
+	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
 }
 
 void beep_long(void)
 {
-//	int delay = 1000000;
-//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
-//	while(delay--);
-//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
+	int delay = 3000000;
+	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
+	while(delay--);
+	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
 }
 
 
@@ -611,6 +703,19 @@ void led(int index,int stat)
 		display_code[4] |= (1<<index);
 	}
 }
+
+
+void led_flash(int index)
+{
+	int i = 100000;
+	display_code[4] &= ~(1<<index);
+	while(i--);
+	display_code[4] |= (1<<index);
+
+}
+
+
+
 
 void sed_smg_number(int index, int num)
 {

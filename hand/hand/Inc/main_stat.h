@@ -36,6 +36,12 @@ extern unsigned char smg_cur_end ;
 
 #define FLASH_ADDRESS (0x08000000+0x10000-4096)
 
+#define TIME_OUT_POWER_OFF 90
+
+
+
+
+
 
 void write_password(unsigned int psw);
 void read_password(void);

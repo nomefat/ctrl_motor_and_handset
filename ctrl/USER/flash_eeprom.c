@@ -20,7 +20,7 @@ void Flash_eeprom_readwrite_Test(void)
     TestStatus OperationStatus;
     u32 add, start_add, stop_add =0;
     u8 WriteBuffer[FLASH_BLOCK_SIZE];
-    u8 new_value[FLASH_BLOCK_SIZE] = "This is a Flash_eeprom write and read example......\
+//    u8 new_value[FLASH_BLOCK_SIZE] = "This is a Flash_eeprom write and read example......\
 This is a Flash_eeprom write and read example....---lingguansheng---2012-2-20";
     u8 block, i=0 ;
     /* Fill the buffer in RAM */

@@ -37,7 +37,7 @@ void UART1_SendByte(u8 data)
 {
     UART1_SendData8((unsigned char)data);
   /* Loop until the end of transmission */
-  while (UART1_GetFlagStatus(UART1_FLAG_TXE) == RESET);
+ // while (UART1_GetFlagStatus(UART1_FLAG_TXE) == RESET);
 }
 
 void UART1_SendString(u8* Data,u16 len)

@@ -131,7 +131,7 @@ int main(void)
   /* USER CODE BEGIN 3 */
 		btn_handle();
 		main_stat_poll();
-		NRF_go_RX_mode();
+		//NRF_go_RX_mode();
   }
   /* USER CODE END 3 */
 

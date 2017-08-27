@@ -37,16 +37,16 @@
 #define E   ~(Sega + Segd + Sege + Segf + Segg )
 #define R    ~(Sega + Segb + Segc + Sege + Segf + Segg )
 
-#define S     ~(Sega + Segc + Segd + Segf + Segf + Segg )
+#define S     ~(Sega + Segc + Segd + Segf + Segg )
 
 
 
 #define F_STAR 10
 #define F_JIN  11
 
-#define F_MAKE_CODE  0
-#define F_CONTROL    1
-#define F_CURRENT    2
+#define F_MAKE_CODE  2
+#define F_CONTROL    0
+#define F_CURRENT    1
 
 #define F_UP         8
 #define F_DOWN       9
@@ -58,6 +58,7 @@
 void beep();
 void beep_long();
 void led(int index,int stat);
+void led_flash(int index);
 void btn_handle(void);
 void sed_smg_number(int index, int num);
 void sed_smg(int index, int num);
