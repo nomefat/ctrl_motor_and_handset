@@ -46,8 +46,8 @@ void main_stat_poll(void)
 {
 	static uint32_t now_time = 0;
 	
-	
-	if(main_stat == rf_error)    //射频错误
+/*---------------------------------射频错误----------------------------------------------------------*/		
+	if(main_stat == rf_error)    //
 	{
 		if(time_100ms%2)		
 		{
@@ -68,7 +68,8 @@ void main_stat_poll(void)
 			sed_smg(3,0xff);				
 		}
 	}
-	else if(main_stat == power_on)            //开机状态，等待输入密码
+/*-------------------------------开机状态，等待输入密码------------------------------------------*/	
+	else if(main_stat == power_on)            //
 	{
 			led(LED1,0);
 			led(LED2,0);
@@ -96,7 +97,8 @@ void main_stat_poll(void)
 					sed_smg(3,0xff);			
 			}
 	}
-	else if(main_stat == password_ok)  //密码已经验证成功
+/*--------------------------------密码已经验证成功-------------------------------------*/		
+	else if(main_stat == password_ok)  //
 	{		
 		
 		if(time_100ms%9 == 0)
@@ -118,7 +120,8 @@ void main_stat_poll(void)
 			led(LED3,1);
 		}		
 	}
-	else if(main_stat == control)  //控制电机状态
+/*------------------------------控制电机状态---------------------------------------------*/		
+	else if(main_stat == control)  //
 	{
 
 		if(control_stat==find_dev)        //找设备
@@ -216,14 +219,10 @@ void main_stat_poll(void)
 				led(LED2,0);
 			}			
 		}
-
-
-
-
-
 		
 	}
-	else if(main_stat == set_current)  //设置电流限值状态
+/*-------------------------------设置电流限值状态---------------------------------------*/		
+	else if(main_stat == set_current)  //
 	{
 		if(set_current_stat==find_dev)        //找设备
 		{
@@ -270,14 +269,18 @@ void main_stat_poll(void)
 			sed_smg(0,0xbf);
 			sed_smg(1,0xbf);			
 			sed_smg(2,0xbf);	
-			if(time_100ms%3 == 0) //定时询问设备状态
+			smg_cur_begin = 3;
+			if(time_100ms%3 == 0 && current_value == -1) //定时询问设备状态
 			{
-				
-			}				
+				led(LED1,1);
+				rf_send_cmd(dev_id,CMD_HAND_GET_DEV_CURRENT_L,0);    //搜索设备
+			}	
+			else
+				led(LED1,0);
 		}		
 	}		
-	
-	else if(main_stat == set_encoding) //设置编码状态
+/*------------------------------设置编码状态--------------------------------------------*/		
+	else if(main_stat == set_encoding) //
 	{
 		
 	}		

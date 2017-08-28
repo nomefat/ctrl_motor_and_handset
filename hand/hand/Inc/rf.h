@@ -11,7 +11,7 @@ typedef struct _rf_cmd
 	unsigned short id;
 	unsigned short code;
 	unsigned char cmd;
-	unsigned int data;
+	unsigned char data[4];
 	unsigned char crc;
 #define CMD_HAND_ZZ                   1	 //遥控正转指令
 #define CMD_HAND_FZ                   2	 //遥控反转指令	
@@ -41,6 +41,21 @@ typedef struct _rf_cmd
 }struct_rf_cmd;
 
 #pragma pack()
+
+
+typedef enum _enum_motor_status
+{
+  none_,              
+  forward,                  //正转
+  forward_to_stop,          //正转停止
+  forward_time_to_stop,     //正转时间到了停止
+  reverse,                  //反转
+  reverse_to_stop,        //反转停止
+  reverse_time_to_stop,     //反转时间到了停止
+  forward_overflow_to_stop,  //正转电流超限制后停止
+  reverse_voceflow_to_stop,  //反转电流超限制后停止
+}enummotor_status;
+
 
 extern struct_rf_cmd rf_cmd;
 

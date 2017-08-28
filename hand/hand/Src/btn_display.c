@@ -480,6 +480,7 @@ void btn_handle(void)
 		{
 			main_stat = password_ok;
 			control_stat = find_dev;
+			smg_cur_begin = 0;
 			smg_value[0] = -1;
 			smg_value[1] = -1;
 			smg_value[2] = -1;
@@ -492,6 +493,7 @@ void btn_handle(void)
 		else if(main_stat == set_current)  //退出到待机状态
 		{
 			main_stat = password_ok;
+			smg_cur_begin = 0;
 			smg_value[0] = -1;
 			smg_value[1] = -1;
 			smg_value[2] = -1;
@@ -504,6 +506,7 @@ void btn_handle(void)
 		else if(main_stat == set_encoding)  //退出到待机状态
 		{
 			main_stat = password_ok;
+			smg_cur_begin = 0;
 			smg_value[0] = -1;
 			smg_value[1] = -1;
 			smg_value[2] = -1;
@@ -626,10 +629,22 @@ void btn_enter()
 		
 		else if(control_stat ==set_fangzhuan_sec )	 //反转显示状态
 		{
+			fangzhuan_sec = -1;
+			sed_smg(2,0xbf);
+			sed_smg(3,0xbf);
+			led(LED2,1);
+			rf_send_cmd(dev_id,CMD_HAND_SET_DEV_FZ_SEC,smg_value[2]*10+smg_value[3]);    //搜索设备
+			led(LED2,0);
 			//发送修改反转时间指令
 		}		
 		else if(control_stat==set_zhengzhuan_sec)  //正转显示状态
 		{
+			zhengzhuan_sec = -1;
+			sed_smg(2,0xbf);
+			sed_smg(3,0xbf);			
+			led(LED2,1);
+			rf_send_cmd(dev_id,CMD_HAND_SET_DEV_ZZ_SEC,smg_value[2]*10+smg_value[3]);    //搜索设备
+			led(LED2,0);
 			//发送修改正转时间指令
 		}
 		
@@ -656,16 +671,15 @@ void btn_enter()
 		else if(set_current_stat==find_ok_dev)
 		{
 		
-		 if(smg_value[0] ==-1 || smg_value[1] ==-1 || smg_value[2] ==-1 || smg_value[3] ==-1 )	 //没有按键值
+		 if(smg_value[3] !=-1 )	 //没有按键值
 		 {
-			 if(current_value >0)
-			 {
-					//设置电流值
-			 }
-		 }
-		 else if(smg_value[0] !=-1 && smg_value[1] !=-1 && smg_value[2] !=-1 && smg_value[3] !=-1)
-		 {
-			 //获取电流值
+			 current_value = -1;
+			 sed_smg(3,0xbf);			 
+			 led(LED1,1);
+			 rf_send_cmd(dev_id,CMD_HAND_SET_DEV_CURRENT_L,smg_value[3]); 
+			 led(LED1,1);
+
+
 		 }
 		 
 	 }
@@ -677,18 +691,18 @@ void btn_enter()
 
 void beep()
 {
-	int delay = 10000;
-	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
-	while(delay--);
-	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
+//	int delay = 10000;
+//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
+//	while(delay--);
+//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
 }
 
 void beep_long(void)
 {
-	int delay = 3000000;
-	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
-	while(delay--);
-	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
+//	int delay = 3000000;
+//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
+//	while(delay--);
+//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
 }
 
 

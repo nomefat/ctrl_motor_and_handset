@@ -39,6 +39,7 @@
 
 #define S     ~(Sega + Segc + Segd + Segf + Segg )
 
+#define _E   ~(Sega + Segb + Segc + Segd + Segg )
 
 
 #define F_STAR 10
