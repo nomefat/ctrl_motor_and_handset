@@ -135,7 +135,9 @@ void delspy_zz(int8_t time)
 	sed_smg(0,E);	
 	sed_smg_number(1,time/10);
 	sed_smg_number(2,time%10);	
-	sed_smg(3,dis[index]);
+	sed_smg(3,dis[index++]);
+	if(index>2)
+		index = 0;
 	
 }
 void delspy_fz(int8_t time)
@@ -146,8 +148,9 @@ void delspy_fz(int8_t time)
 	sed_smg(0,_E);	
 	sed_smg_number(1,time/10);
 	sed_smg_number(2,time%10);	
-	sed_smg(3,dis[index]);
-	
+	sed_smg(3,dis[index++]);
+	if(index>2)
+		index = 0;	
 }
 void delspy_stop(void)
 {

@@ -166,9 +166,7 @@ void main_stat_poll(void)
 		}
 		else if(control_stat==find_ok_dev)    //已经找到设备 定时读取设备的状态
 		{
-			sed_smg(0,0xbf);
-			sed_smg(1,0xbf);			
-			sed_smg(2,0xbf);	
+
 			if(time_sec%2 == 0 && now_time != time_sec)
 			{
 				led(LED2,1);

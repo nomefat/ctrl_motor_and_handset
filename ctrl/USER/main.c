@@ -39,10 +39,11 @@ extern u8 UART_RX_NUM;
 
 u32 time_sec = 0;
 u32 AD_result;
-
+u16 Conversion_Value;
 
 extern u16 adc_1250mv;
 
+u8 do_motor_stop_once = 0;
 
 struct__system_param system_param;     //系统参数
 enummotor_status motor_status;
@@ -78,14 +79,11 @@ int main(void)
   gpio_init();
   drv_spi_init();
   
-      NRF24L01_Gpio_Init( );
-      RF24L01_Init( );
-      RF24L01_Set_Mode( MODE_RX );
+  NRF24L01_Gpio_Init( );
+  RF24L01_Init( );
+  RF24L01_Set_Mode( MODE_RX );
       
       
-  motor_forward();
-  motor_reverse();
-  
   adc_get_125();
   adc_get_125();
   adc_get_125();
@@ -99,7 +97,11 @@ int main(void)
      adc_handle();
      time_left_handle();
      rf_rx_();
-
+     if(do_motor_stop_once == 1)
+     {
+       do_motor_stop_once = 0;
+       motor_stop();
+     }
      
    }
 
@@ -115,12 +117,54 @@ void Delay(u16 nCount)
     nCount--;
   }
 }
-
+u32 current = 0;
 void adc_handle()
 {
-  u32 current = 0;
+  
+  
+  
+  if((ADC1->CSR & 0x80) == 0x80)
+  {
+      ADC1->CSR &= 0x7f;
+      AD_result = 0;
+      Conversion_Value = ADC1->DB0RL;
+      Conversion_Value += (u16)(ADC1->DB0RH)<<8;
+      AD_result +=Conversion_Value;
+      Conversion_Value = ADC1->DB1RL;
+      Conversion_Value += (u16)(ADC1->DB1RH)<<8;
+      AD_result +=Conversion_Value;  
+      Conversion_Value = ADC1->DB2RL;
+      Conversion_Value += (u16)(ADC1->DB2RH)<<8;
+      AD_result +=Conversion_Value;    
+      Conversion_Value = ADC1->DB3RL;
+      Conversion_Value += (u16)(ADC1->DB3RH)<<8;
+      AD_result +=Conversion_Value;    
+      Conversion_Value = ADC1->DB4RL;
+      Conversion_Value += (u16)(ADC1->DB5RH)<<8;
+      AD_result +=Conversion_Value;    
+       Conversion_Value = ADC1->DB5RL;
+      Conversion_Value += (u16)(ADC1->DB5RH)<<8;
+      AD_result +=Conversion_Value;   
+      Conversion_Value = ADC1->DB6RL;
+      Conversion_Value += (u16)(ADC1->DB6RH)<<8;
+      AD_result +=Conversion_Value;  
+      Conversion_Value = ADC1->DB7RL;
+      Conversion_Value += (u16)(ADC1->DB7RH)<<8;
+      AD_result +=Conversion_Value;  
+      Conversion_Value = ADC1->DB8RL;
+      Conversion_Value += (u16)(ADC1->DB8RH)<<8;
+      AD_result +=Conversion_Value;  
+      Conversion_Value = ADC1->DB9RL;
+      Conversion_Value += (u16)(ADC1->DB9RH)<<8;
+      AD_result +=Conversion_Value;    
+  
+      AD_result = AD_result/10;
+  }
+  else
+    return;
   
   current =  (AD_result*12500)/adc_1250mv;
+  
 
   if(current > system_param.current_threshold[system_param.current_chose])
   {
@@ -138,7 +182,7 @@ void adc_handle()
     }
   }
 
-extern u16 adc_1250mv;
+
 }
 
 
@@ -210,11 +254,11 @@ void init_param()
   system_param.forward_time = 99;
   system_param.reverse_time = 99;
   system_param.time_left = 259200;
-  system_param.current_threshold[0] = 20;
-  system_param.current_threshold[1] = 30;
-  system_param.current_threshold[2] = 40;
-  system_param.current_threshold[3] = 50;
-  system_param.current_threshold[4] = 60;  
+  system_param.current_threshold[0] = 300;
+  system_param.current_threshold[1] = 500;
+  system_param.current_threshold[2] = 800;
+  system_param.current_threshold[3] = 1000;
+  system_param.current_threshold[4] = 1200;  
 }
 
 

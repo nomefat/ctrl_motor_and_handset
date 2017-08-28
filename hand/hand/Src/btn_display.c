@@ -426,7 +426,7 @@ void btn_handle(void)
 		beep();
 		if(control_stat==find_ok_dev && main_stat == control)  //控制状态下，已经找到设备
 		{
-			rf_send_cmd(dev_id,CMD_HAND_ZZ,0);    //发送反转指令
+			rf_send_cmd(dev_id,CMD_HAND_FZ,0);    //发送反转指令
 		}			
 	}	
 	else if(i==F_ENTER)  //确认按键
@@ -691,18 +691,18 @@ void btn_enter()
 
 void beep()
 {
-//	int delay = 10000;
-//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
-//	while(delay--);
-//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
+	int delay = 10000;
+	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
+	while(delay--);
+	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
 }
 
 void beep_long(void)
 {
-//	int delay = 3000000;
-//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
-//	while(delay--);
-//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
+	int delay = 3000000;
+	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
+	while(delay--);
+	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
 }
 
 

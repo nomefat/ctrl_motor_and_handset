@@ -202,7 +202,7 @@ typedef struct _rf_cmd
 	unsigned short id;
 	unsigned short code;
 	unsigned char cmd;
-	unsigned int data;
+	unsigned char data[4];
 	unsigned char crc;
 #define CMD_HAND_ZZ                   1	 //遥控正转指令
 #define CMD_HAND_FZ                   2	 //遥控反转指令	

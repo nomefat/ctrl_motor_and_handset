@@ -6,12 +6,18 @@
 #include "uart.h"
 #include "adc.h"
 #include "drv_RF24L01.h"
+#include "pwm.h"
+
+
+
 extern void Delay(u16 nCount);
 u8 RxBuffer[RxBufferSize];
 u8 UART_RX_NUM=0;
-u16 Conversion_Value;
+extern u8 zz_time;
+extern u8 fz_time;
 extern u32 AD_result;
-
+extern u8 do_motor_stop_once;
+extern enummotor_status motor_status;
 
 
 #pragma vector=1
@@ -107,6 +113,25 @@ __interrupt void TIM1_UPD_OVF_TRG_BRK_IRQHandler(void)
   {
     time_ms = 0;
     time_sec++;   
+    if(zz_time>0)
+    {
+      zz_time--;
+      if(zz_time == 0 && motor_status == forward)
+      {
+        motor_status = forward_time_to_stop;
+        do_motor_stop_once = 1;
+      }
+    }
+    if(fz_time>0)
+    {
+      fz_time--;
+      if(fz_time == 0 && motor_status == reverse)
+      {
+        motor_status = reverse_time_to_stop;
+        do_motor_stop_once = 1;
+      }
+    }
+
   }
 
  
@@ -232,6 +257,7 @@ __interrupt void ADC2_IRQHandler(void)
 #pragma vector=0x18
 __interrupt void ADC1_IRQHandler(void)
 {
+  /*
   AD_result = 0;
   Conversion_Value = ADC1->DB0RL;
   Conversion_Value += (u16)(ADC1->DB0RH)<<8;
@@ -265,7 +291,7 @@ __interrupt void ADC1_IRQHandler(void)
   AD_result +=Conversion_Value;    
   
   AD_result = AD_result/10;
-  
+  */
   ADC1_ClearITPendingBit(ADC1_IT_EOC);
 }
 #endif

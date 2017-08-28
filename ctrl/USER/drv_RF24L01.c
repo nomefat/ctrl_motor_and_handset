@@ -753,16 +753,24 @@ extern struct__system_param system_param;
 extern enummotor_status motor_status;
 
 
-void rf_tx(u8 cmd,u32 data)
+void rf_tx(u8 cmd,u8 data1,u8 data2,u8 data3,u8 data4)
 {
   uint8_t l_Status = 0;
   uint16_t l_MsTimes = 0;
-  
+
+        
   struct_rf_cmd *ptr_rx = (struct_rf_cmd *)tx_buff;
+  
+
+  ptr_rx->data[0] = data1 ;
+  ptr_rx->data[1] = data2; 
+  ptr_rx->data[2] = data3;   
+  ptr_rx->data[3] = data4;   
+  
   
   ptr_rx->head = 0xaa55;
   ptr_rx->cmd = cmd;
-  ptr_rx->data = data;
+
   ptr_rx->id = system_param.id;
   ptr_rx->crc = 0;  
   
@@ -804,16 +812,17 @@ void rf_rx_data_handle()
       if(motor_status == forward)
       {
         if(zz_time>0)
-			zz_time = system_param.forward_time;
+          zz_time = system_param.forward_time;
       }
       else if(motor_status == reverse)
       {
         motor_status = forward_to_stop;
-		fz_time = 0;
+	fz_time = 0;
         motor_stop();
       }
       else
       {
+        zz_time = system_param.forward_time;
         motor_forward();
       }
       break;//遥控正转指令
@@ -821,54 +830,60 @@ void rf_rx_data_handle()
        if(motor_status == forward)
       {
         motor_status = reverse_to_stop;
-		zz_time = 0;
+	zz_time = 0;
         motor_stop();
       }
       else if(motor_status == reverse)
       {
         if(fz_time>0)
-			fz_time = system_param.reverse_time;        
+          fz_time = system_param.reverse_time;        
       }
       else
       {
+        fz_time = system_param.reverse_time;  
         motor_reverse();
       }   
       break;//遥控反转指令	
     case CMD_HAND_GET_DEV_STAT    :    
-      rf_tx(CMD_DEV_STAT,motor_status);
+      if(motor_status == reverse)
+        rf_tx(CMD_DEV_STAT,motor_status,fz_time,0,0);
+      else if(motor_status == forward)
+        rf_tx(CMD_DEV_STAT,motor_status,zz_time,0,0);
+      else
+        rf_tx(CMD_DEV_STAT,motor_status,0,0,0);
       break;   //遥控获取设备状态指令
     case CMD_HAND_SET_DEV_ZZ_SEC   :    
 	  system_param.forward_time = ptr_rx->data[0];
-      rf_tx(CMD_DEV_ZZ_SEC,system_param.forward_time);
+      rf_tx(CMD_DEV_ZZ_SEC,system_param.forward_time,0,0,0);
       break;  //遥控设置设备正转时间
     case CMD_HAND_SET_DEV_FZ_SEC   :     
 	  system_param.reverse_time = ptr_rx->data[0];
-      rf_tx(CMD_DEV_FZ_SEC,system_param.reverse_time);      
+      rf_tx(CMD_DEV_FZ_SEC,system_param.reverse_time,0,0,0);      
       break; //遥控设置设备反转时间
     case CMD_HAND_GET_DEV_ZZ_SEC   :    
-      rf_tx(CMD_DEV_ZZ_SEC,system_param.forward_time);      
+      rf_tx(CMD_DEV_ZZ_SEC,system_param.forward_time,0,0,0);      
       break; //遥控获取设备正转时间
     case CMD_HAND_GET_DEV_FZ_SEC   :     
-	  rf_tx(CMD_DEV_FZ_SEC,system_param.reverse_time);      
+	  rf_tx(CMD_DEV_FZ_SEC,system_param.reverse_time,0,0,0);      
       break; //遥控获取设备反转时间	
     case CMD_HAND_SET_DEV_ID       :    
 	
-      rf_tx(CMD_DEV_NEW_ID,ptr_rx->data[0] + ptr_rx->data[1]*10); 
+          rf_tx(CMD_DEV_NEW_ID,ptr_rx->data[0] ,ptr_rx->data[1],0,0); 
 	  system_param.id = ptr_rx->data[0] + ptr_rx->data[1]*10;
       break; //遥控设置设备ID
     case CMD_HAND_SET_DEV_CODE     :     
 	  system_param.area_code = ptr_rx->data[0] + ptr_rx->data[1]*10;  
-	  rf_tx(CMD_DEV_NEW_CODE,ptr_rx->data[0] + ptr_rx->data[1]*10); 
+	  rf_tx(CMD_DEV_NEW_CODE,ptr_rx->data[0],ptr_rx->data[1],0,0); 
       break; //遥控设置设备区域编码
     case CMD_HAND_SET_DEV_CURRENT_L :    
       system_param.current_chose = ptr_rx->data[0];
-	  rf_tx(CMD_DEV_CURRENT_L,ptr_rx->data[0]); 
+	  rf_tx(CMD_DEV_CURRENT_L,ptr_rx->data[0],0,0,0); 
       break;//遥控设置设备电流等级
     case CMD_HAND_GET_DEV_CURRENT_L  :   
-      rf_tx(CMD_DEV_CURRENT_L,system_param.current_chose); 
+      rf_tx(CMD_DEV_CURRENT_L,system_param.current_chose,0,0,0); 
       break; //遥控设置设备电流等级	
     case CMD_HAND_SET_LOCK_TIME     :    
-      rf_tx(CMD_DEV_CURRENT_L,system_param.time_left );       
+      rf_tx(CMD_DEV_CURRENT_L,system_param.time_left,system_param.time_left>>8,system_param.time_left>>16,system_param.time_left>>24 );       
       break; //设置锁定时间    
   default :break;
   }

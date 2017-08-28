@@ -28,7 +28,7 @@
         <ShowSource>1</ShowSource>
     </Trace1>
     <DebugChecksum>
-        <Checksum>3597541053</Checksum>
+        <Checksum>482913890</Checksum>
     </DebugChecksum>
     <CodeCoverage>
         <Enabled>_ 0</Enabled>
@@ -91,6 +91,12 @@
         <Show>1 1</Show>
         <Sort>4 0</Sort>
     </SfrWindow>
+    <struct_types>
+        <Fmt0>struct__system_param-forward_time	3	0</Fmt0>
+    </struct_types>
+    <array_types>
+        <Fmt0>u16[5]	3	0</Fmt0>
+    </array_types>
     <DataSample>
         <LogEnabled>0</LogEnabled>
         <GraphEnabled>0</GraphEnabled>
