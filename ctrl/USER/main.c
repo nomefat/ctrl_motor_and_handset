@@ -164,7 +164,7 @@ void adc_handle()
     return;
   
   current =  (AD_result*12500)/adc_1250mv;
-  
+  current = 0;
 
   if(current > system_param.current_threshold[system_param.current_chose])
   {
@@ -195,7 +195,7 @@ void read_param()
   u8 *ptr = (u8 *)(&system_param);
   u8 size = sizeof(struct__system_param);
   
-  if((*(PointerAttr uint8_t *) (uint16_t)0x4000) == 0x55 )
+  if((*(PointerAttr uint8_t *) (uint16_t)0x4000) == 0x56 )
   {
     for(i=0;i<size;i++)
     {
@@ -247,7 +247,7 @@ void time_left_handle()
 
 void init_param()
 {
-  system_param.head = 0x55;
+  system_param.head = 0x56;
   system_param.area_code = 0x00;
   system_param.id = 1234;
   system_param.current_chose = 0;

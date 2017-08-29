@@ -13,6 +13,7 @@ extern u8 rxbuf[32];
 extern uint16_t dev_id;
 extern enmu_control_stat control_stat;
 extern enmu_control_stat set_current_stat;
+extern enmu_control_stat set_id_stat;
 extern int8_t zhengzhuan_sec ;
 extern int8_t fangzhuan_sec ;
 extern uint32_t current_value;
@@ -95,7 +96,15 @@ void rf_data_handle(void)
 			}
 			else if(main_stat == set_encoding) //ÉèÖÃ±àÂë×´Ì¬
 			{
-				
+				if(set_id_stat==find_dev)
+				{
+					set_id_stat = find_ok_dev;
+					id = rxbuf[3] + rxbuf[2]*256;
+					sed_smg_number(0,id/1000);
+					sed_smg_number(1,id%1000/100);	
+					sed_smg_number(2,id%100/10);
+					sed_smg_number(3,id%10);						
+				}
 			}
 				
 			break;     //  50   //Éè±¸·µ»Ø×´Ì¬	

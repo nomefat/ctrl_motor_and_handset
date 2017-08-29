@@ -806,6 +806,11 @@ void rf_rx_data_handle()
   if(ptr_rx->head != 0x55aa)
     return;
   
+  if((rx_buff[2] != ((ptr_rx->id>>8)&0xff) || rx_buff[3] != (ptr_rx->id&0xff) )&& (rx_buff[3]*256+rx_buff[2]) !=9998)
+    return;
+  
+  
+  
   switch(ptr_rx->cmd)
   {
     case CMD_HAND_ZZ               :    

@@ -362,6 +362,7 @@ void btn_handle(void)
 		{
 			beep();
 			main_stat = set_encoding;
+			set_id_stat = find_dev;
 			led(LED1,0);
 			led(LED2,0);
 			led(LED3,1);
@@ -381,6 +382,7 @@ void btn_handle(void)
 		{
 			beep();
 			main_stat = control;
+			control_stat = find_dev;
 			led(LED1,1);
 			led(LED2,0);
 			led(LED3,0);	
@@ -400,6 +402,7 @@ void btn_handle(void)
 		{
 			beep();
 			main_stat = set_current;
+			set_current_stat = find_dev;
 			led(LED1,0);
 			led(LED2,1);
 			led(LED3,0);
@@ -442,6 +445,7 @@ void btn_handle(void)
 			rf_get_sec_flag = time_sec;
 			zhengzhuan_sec = -1;
 			smg_cur_begin = 2;
+			smg_cur = 2;
 			sed_smg(0,E);
 			sed_smg(1,0XBF);		
 			sed_smg(2,0XBF);	
@@ -452,6 +456,7 @@ void btn_handle(void)
 			control_stat = set_fangzhuan_sec;
 			rf_get_sec_flag = time_sec;
 			fangzhuan_sec = -1;
+			smg_cur = 2;
 			sed_smg(0,_E);	
 			sed_smg(1,0XBF);		
 			sed_smg(2,0XBF);	
@@ -462,6 +467,7 @@ void btn_handle(void)
 			control_stat = set_zhengzhuan_sec;
 			rf_get_sec_flag = time_sec;
 			zhengzhuan_sec = -1;
+			smg_cur = 2;
 			sed_smg(0,E);		
 			sed_smg(1,0XBF);		
 			sed_smg(2,0XBF);	
@@ -480,6 +486,7 @@ void btn_handle(void)
 		{
 			main_stat = password_ok;
 			control_stat = find_dev;
+			smg_cur= 0;
 			smg_cur_begin = 0;
 			smg_value[0] = -1;
 			smg_value[1] = -1;
@@ -494,6 +501,7 @@ void btn_handle(void)
 		{
 			main_stat = password_ok;
 			set_current_stat = find_dev;
+			smg_cur= 0;
 			smg_cur_begin = 0;
 			smg_value[0] = -1;
 			smg_value[1] = -1;
@@ -508,6 +516,7 @@ void btn_handle(void)
 		{
 			main_stat = password_ok;
 			set_id_stat = find_dev;
+			smg_cur= 0;
 			smg_cur_begin = 0;
 			smg_value[0] = -1;
 			smg_value[1] = -1;
@@ -691,16 +700,20 @@ void btn_enter()
 		{
 			dev_id = smg_value[0]*1000+smg_value[1]*100+smg_value[2]*10+smg_value[3];
 			find_dev_begin = time_sec;
+			sed_smg_number(0,0);
+			sed_smg_number(1,0);			
+			sed_smg_number(2,0);			
+			sed_smg_number(3,0);						
 		}		
 		else if (set_id_stat==find_none_dev)
 		{
 			dev_id = smg_value[0]*1000+smg_value[1]*100+smg_value[2]*10+smg_value[3];
 			find_dev_begin = time_sec;	
 			set_id_stat = find_dev	;		
-			sed_smg_number(0,smg_value[0]);
-			sed_smg_number(1,smg_value[1]);			
-			sed_smg_number(2,smg_value[2]);			
-			sed_smg_number(3,smg_value[3]);			
+			sed_smg_number(0,0);
+			sed_smg_number(1,0);			
+			sed_smg_number(2,0);			
+			sed_smg_number(3,0);			
 		}				
 		else if(set_id_stat==find_ok_dev)
 		{
@@ -722,18 +735,18 @@ void btn_enter()
 
 void beep()
 {
-//	int delay = 10000;
-//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
-//	while(delay--);
-//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
+	int delay = 10000;
+	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
+	while(delay--);
+	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
 }
 
 void beep_long(void)
 {
-//	int delay = 3000000;
-//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
-//	while(delay--);
-//	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
+	int delay = 3000000;
+	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_SET); 
+	while(delay--);
+	HAL_GPIO_WritePin(beep_GPIO_Port,beep_Pin,GPIO_PIN_RESET); 
 }
 
 

@@ -294,14 +294,14 @@ void main_stat_poll(void)
 					}	
 					else if(time_100ms%2 == 1 )
 						led(LED1,0);
-					
+				
 					if(time_sec - find_dev_begin >3)
 					{
 						find_dev_begin = 0;
-						set_current_stat = find_none_dev;
+						set_id_stat = find_none_dev;
 						led(LED1,0);
 					}
-				}
+				}	
 				
 			}
 		else if(set_id_stat==find_none_dev)  //没找到设备  闪烁编号
