@@ -12,6 +12,7 @@ extern enum_rf_mode rf_mode;
 extern u8 rxbuf[32];
 extern uint16_t dev_id;
 extern enmu_control_stat control_stat;
+extern enmu_control_stat set_current_stat;
 extern int8_t zhengzhuan_sec ;
 extern int8_t fangzhuan_sec ;
 extern uint32_t current_value;
@@ -69,25 +70,32 @@ void rf_data_handle(void)
 	
 	switch(ptr->cmd)
 	{
-		case  CMD_DEV_STAT :     
-			if(control_stat == find_dev)
+		case  CMD_DEV_STAT :  
+			if(main_stat == control)		//控制状态	
 			{
-				control_stat = find_ok_dev;   
+				if(control_stat == find_dev) //正在找设备
+				{
+					control_stat = find_ok_dev;   
+				}
+				if(control_stat == find_ok_dev) //已经找到设备
+				{
+					if(ptr->data[0] == forward)
+					{
+						delspy_zz(ptr->data[1]);
+					}
+					else if(ptr->data[0] == reverse)
+					{
+						delspy_fz(ptr->data[1]);
+					}
+					else
+					{
+						delspy_stop();
+					}
+				}
 			}
-			if(control_stat == find_ok_dev)
+			else if(main_stat == set_encoding) //设置编码状态
 			{
-				if(ptr->data[0] == forward)
-				{
-					delspy_zz(ptr->data[1]);
-				}
-				else if(ptr->data[0] == reverse)
-				{
-					delspy_fz(ptr->data[1]);
-				}
-				else
-				{
-					delspy_stop();
-				}
+				
 			}
 				
 			break;     //  50   //设备返回状态	
@@ -113,6 +121,8 @@ void rf_data_handle(void)
 		break;     // 54   //设备返回新CODE 然后会切换CODE
 		
 		case CMD_DEV_CURRENT_L :      
+				if(set_current_stat==find_dev)
+					set_current_stat = find_ok_dev;
 				current_value = fangzhuan_sec = ptr->data[0];		
 				sed_smg_number(3,ptr->data[0]);				
 				break;   // 55   //设备返回电流等级

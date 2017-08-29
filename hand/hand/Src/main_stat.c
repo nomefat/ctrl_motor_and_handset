@@ -20,6 +20,7 @@ enmu_control_stat control_stat;
 
 enmu_control_stat set_current_stat;
 
+enmu_control_stat set_id_stat;
 
 signed char smg_value[4] = {-1,-1,-1,-1};
 
@@ -191,14 +192,14 @@ void main_stat_poll(void)
 				led(LED2,0);
 			
 			
-			if(time_sec - rf_get_sec_flag>3)
-			{
-				rf_get_sec_flag = 0;
-				control_stat = find_ok_dev;
-				led(LED2,0);
-			}
+//			if(time_sec - rf_get_sec_flag>3)
+//			{
+//				rf_get_sec_flag = 0;
+//				control_stat = find_ok_dev;
+//				led(LED2,0);
+//			}
 		}
-		else if(control_stat==set_zhengzhuan_sec)    //获取设备反转时间 可以修改
+		else if(control_stat==set_fangzhuan_sec)    //获取设备反转时间 可以修改
 		{
 			if(time_100ms%2 == 0 && now_time != time_100ms && fangzhuan_sec<0)
 			{
@@ -210,12 +211,12 @@ void main_stat_poll(void)
 			else if(time_100ms%2 == 1 )
 				led(LED2,0);
 			
-			if(time_sec - rf_get_sec_flag>3)
-			{
-				rf_get_sec_flag = 0;
-				control_stat = find_ok_dev;
-				led(LED2,0);
-			}			
+//			if(time_sec - rf_get_sec_flag>3)
+//			{
+//				rf_get_sec_flag = 0;
+//				control_stat = find_ok_dev;
+//				led(LED2,0);
+//			}			
 		}
 		
 	}
@@ -262,7 +263,7 @@ void main_stat_poll(void)
 				sed_smg(3,0xff);			
 			}			
 		}
-		else if(set_current_stat==find_ok_dev)    //已经找到设备 定时读取设备的状态
+		else if(set_current_stat==find_ok_dev)    //已经找到设备 维护读取设备的电流等级
 		{
 			sed_smg(0,0xbf);
 			sed_smg(1,0xbf);			
@@ -280,7 +281,50 @@ void main_stat_poll(void)
 /*------------------------------设置编码状态--------------------------------------------*/		
 	else if(main_stat == set_encoding) //
 	{
-		
+		if(set_id_stat==find_dev)        //找设备
+			{
+				if(find_dev_begin >0)
+				{
+					if(time_100ms%2 == 0 && now_time != time_100ms)
+					{
+						led(LED1,1);
+						now_time = time_100ms;
+						rf_send_cmd(dev_id,CMD_HAND_GET_DEV_STAT,0);    //搜索设备
+						
+					}	
+					else if(time_100ms%2 == 1 )
+						led(LED1,0);
+					
+					if(time_sec - find_dev_begin >3)
+					{
+						find_dev_begin = 0;
+						set_current_stat = find_none_dev;
+						led(LED1,0);
+					}
+				}
+				
+			}
+		else if(set_id_stat==find_none_dev)  //没找到设备  闪烁编号
+		{
+			if(time_100ms%2)
+			{
+				sed_smg_number(0,smg_value[0]);
+				sed_smg_number(1,smg_value[1]);			
+				sed_smg_number(2,smg_value[2]);			
+				sed_smg_number(3,smg_value[3]);
+			}
+			else
+			{
+				sed_smg(0,0xff);
+				sed_smg(1,0xff);			
+				sed_smg(2,0xff);			
+				sed_smg(3,0xff);			
+			}			
+		}	
+		else if(set_id_stat==find_ok_dev)    //已经找到设备 维护读取设备的电流等级
+		{
+			;
+		}
 	}		
 	
 }
