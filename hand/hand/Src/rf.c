@@ -16,6 +16,7 @@ extern enmu_control_stat set_current_stat;
 extern enmu_control_stat set_id_stat;
 extern int8_t zhengzhuan_sec ;
 extern int8_t fangzhuan_sec ;
+extern int32_t left_day ;
 extern uint32_t current_value;
 
 
@@ -51,12 +52,12 @@ void rf_send_cmd(unsigned short id,unsigned char cmd,unsigned int data)
 
 
 
-
+	
 void rf_data_handle(void)
 {
-	struct_rf_cmd* ptr = (struct_rf_cmd* )rxbuf;
+
 	uint16_t id = 0;
-	
+	struct_rf_cmd* ptr = (struct_rf_cmd* )rxbuf;	
 	id = dev_id>>8;
 	id += dev_id<<8;
 	
@@ -137,7 +138,11 @@ void rf_data_handle(void)
 				break;   // 55   //设备返回电流等级
 		
 		case CMD_DEV_LOCK_TIME   :      
-				
+				left_day = ptr->data[0];
+				left_day += ptr->data[1]*256;
+				sed_smg_number(1,left_day/100);	
+				sed_smg_number(2,left_day%100/10);	
+				sed_smg_number(3,left_day%10);		
 				break;    // 56	 //返回锁定时间
 		
 		default : break;

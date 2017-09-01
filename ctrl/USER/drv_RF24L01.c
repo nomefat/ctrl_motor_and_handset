@@ -802,6 +802,7 @@ void rf_tx(u8 cmd,u8 data1,u8 data2,u8 data3,u8 data4)
 void rf_rx_data_handle()
 {
   struct_rf_cmd *ptr_rx = (struct_rf_cmd *)rx_buff;
+  u16 day;
   
   if(ptr_rx->head != 0x55aa)
     return;
@@ -888,8 +889,15 @@ void rf_rx_data_handle()
       rf_tx(CMD_DEV_CURRENT_L,system_param.current_chose,0,0,0); 
       break; //遥控设置设备电流等级	
     case CMD_HAND_SET_LOCK_TIME     :    
-      rf_tx(CMD_DEV_CURRENT_L,system_param.time_left,system_param.time_left>>8,system_param.time_left>>16,system_param.time_left>>24 );       
-      break; //设置锁定时间    
+      system_param.time_left = ptr_rx->data[0] + ptr_rx->data[1]*256;
+      system_param.time_left = system_param.time_left * 60 * 24;
+      day = system_param.time_left/(60 * 24);
+      rf_tx(CMD_DEV_LOCK_TIME,day,day>>8,0,0);       
+      break; //设置锁定时间   
+     case CMD_HAND_GET_LOCK_TIME     :   
+       day = system_param.time_left/(60 * 24);
+      rf_tx(CMD_DEV_LOCK_TIME,day,day>>8,0,0 );     
+      break; //设置锁定时间       
   default :break;
   }
     

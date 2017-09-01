@@ -31,6 +31,7 @@ unsigned char smg_cur_end = 4;
 
 int8_t zhengzhuan_sec = -1;
 int8_t fangzhuan_sec = -1;
+int32_t left_day = -1;
 
 uint32_t current_value = -1;
 
@@ -218,6 +219,18 @@ void main_stat_poll(void)
 //				led(LED2,0);
 //			}			
 		}
+		else if(control_stat==set_left_day	)
+		{
+			if(time_100ms%2 == 0 && now_time != time_100ms && left_day<0)
+			{
+				led(LED2,1);
+				now_time = time_100ms;
+				rf_send_cmd(dev_id,CMD_HAND_GET_LOCK_TIME,0);    //搜索设备
+				
+			}	
+			else if(time_100ms%2 == 1 )
+				led(LED2,0);			
+		}			
 		
 	}
 /*-------------------------------设置电流限值状态---------------------------------------*/		

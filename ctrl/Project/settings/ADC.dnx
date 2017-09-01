@@ -28,7 +28,7 @@
         <ShowSource>1</ShowSource>
     </Trace1>
     <DebugChecksum>
-        <Checksum>2613150896</Checksum>
+        <Checksum>3461552405</Checksum>
     </DebugChecksum>
     <CodeCoverage>
         <Enabled>_ 0</Enabled>
@@ -94,7 +94,7 @@
     <struct_types>
         <Fmt0>struct__system_param-forward_time	3	0</Fmt0>
         <Fmt1>struct__system_param-id	4	0</Fmt1>
-        <Fmt2>struct__system_param-time_left	4	0</Fmt2>
+        <Fmt2>struct__system_param-time_left	3	0</Fmt2>
         <Fmt3>struct_rf_cmd-head	4	0</Fmt3>
         <Fmt4>struct_rf_cmd-id	4	0</Fmt4>
     </struct_types>
@@ -116,7 +116,9 @@
         <LogFile>_ ""</LogFile>
     </TermIOLog>
     <Breakpoints>
-        <Count>0</Count>
+        <Bp0>_ "STD_CODE" "{$PROJ_DIR$\..\USER\drv_RF24L01.c}.898.8" 1 0 0 0 "" 0 ""</Bp0>
+        <Bp1>_ "STD_CODE" "{$PROJ_DIR$\..\USER\drv_RF24L01.c}.892.7" 1 0 0 0 "" 0 ""</Bp1>
+        <Count>2</Count>
     </Breakpoints>
     <Aliases>
         <Count>0</Count>

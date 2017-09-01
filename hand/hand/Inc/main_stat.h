@@ -22,6 +22,7 @@ typedef enum _control_stat
 	find_ok_dev,
 	set_zhengzhuan_sec,
 	set_fangzhuan_sec,
+	set_left_day
 }enmu_control_stat;
 
 

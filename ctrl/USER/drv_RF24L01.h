@@ -216,7 +216,7 @@ typedef struct _rf_cmd
 #define CMD_HAND_SET_DEV_CURRENT_L    10  //遥控设置设备电流等级
 #define CMD_HAND_GET_DEV_CURRENT_L    11  //遥控设置设备电流等级	
 #define CMD_HAND_SET_LOCK_TIME        12  //设置锁定时间
-
+#define CMD_HAND_GET_LOCK_TIME        13
 	
 	
 #define CMD_DEV_STAT                  50   //设备返回状态	

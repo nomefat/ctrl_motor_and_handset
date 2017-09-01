@@ -79,6 +79,7 @@ extern enmu_control_stat set_id_stat;
 	
 extern int8_t zhengzhuan_sec ;
 extern int8_t fangzhuan_sec ;	
+extern	int32_t left_day ;
 extern	int8_t current_value;
 extern	uint16_t dev_id ;
 	
@@ -457,6 +458,7 @@ void btn_handle(void)
 			rf_get_sec_flag = time_sec;
 			fangzhuan_sec = -1;
 			smg_cur = 2;
+			smg_cur_begin = 2;
 			sed_smg(0,_E);	
 			sed_smg(1,0XBF);		
 			sed_smg(2,0XBF);	
@@ -464,16 +466,30 @@ void btn_handle(void)
 		}				
 		else if(control_stat==set_fangzhuan_sec && main_stat == control)  //控制状态下，获取正转时间  
 		{
+			control_stat = set_left_day;
+			rf_get_sec_flag = time_sec;
+			left_day = -1;
+			smg_cur_begin = 1;
+			smg_cur = 1;
+			sed_smg(0,O);		
+			sed_smg(1,0XBF);		
+			sed_smg(2,0XBF);	
+			sed_smg(3,0XBF);	
+			
+		}		
+		else if(control_stat==set_left_day && main_stat == control)  //控制状态下，获取正转时间  
+		{
 			control_stat = set_zhengzhuan_sec;
 			rf_get_sec_flag = time_sec;
 			zhengzhuan_sec = -1;
 			smg_cur = 2;
+			smg_cur_begin = 2;
 			sed_smg(0,E);		
 			sed_smg(1,0XBF);		
 			sed_smg(2,0XBF);	
 			sed_smg(3,0XBF);	
 			
-		}						
+		}				
 	}
 	else if(i==F_EXIT)    //退出按钮
 	{
@@ -641,6 +657,7 @@ void btn_enter()
 		else if(control_stat ==set_fangzhuan_sec )	 //反转显示状态
 		{
 			fangzhuan_sec = -1;
+			sed_smg(1,0xbf);
 			sed_smg(2,0xbf);
 			sed_smg(3,0xbf);
 			led(LED2,1);
@@ -651,6 +668,7 @@ void btn_enter()
 		else if(control_stat==set_zhengzhuan_sec)  //正转显示状态
 		{
 			zhengzhuan_sec = -1;
+			sed_smg(1,0xbf);
 			sed_smg(2,0xbf);
 			sed_smg(3,0xbf);			
 			led(LED2,1);
@@ -658,7 +676,17 @@ void btn_enter()
 			led(LED2,0);
 			//发送修改正转时间指令
 		}
-		
+		else if(control_stat==set_left_day)  //正转显示状态
+		{
+			left_day = -1;
+			sed_smg(1,0xbf);
+			sed_smg(2,0xbf);
+			sed_smg(3,0xbf);			
+			led(LED2,1);
+			rf_send_cmd(dev_id,CMD_HAND_SET_LOCK_TIME,(smg_value[1]*100+smg_value[2]*10+smg_value[3]));    //搜索设备
+			led(LED2,0);
+			//发送修改正转时间指令
+		}		
 	}
 		
 	else if(main_stat == set_current)  //设置电流状态
