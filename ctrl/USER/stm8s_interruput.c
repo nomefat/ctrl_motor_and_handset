@@ -95,16 +95,46 @@ extern enummotor_status motor_status;
 extern u32 time_sec;
 extern u16 pwm_val;
 u16 time_ms = 0;
+
+u16 key_num = 0;
+
+u8 key_status = 0;
+
+u8 led_flag_ms = 0;
+
+u8 led_flag_s = 0;
 #pragma vector=0xD
 __interrupt void TIM1_UPD_OVF_TRG_BRK_IRQHandler(void)
 {
 
   if(time_ms%100 == 0)
   {
+    led_flag_ms = 1;
     if((motor_status == forward || motor_status == reverse) && pwm_val<1000)
     {
       pwm_val += 50;
       PWM_set_DutyCycle(pwm_val);
+    }
+    if(GPIO_ReadInputPin(GPIOD,GPIO_PIN_4) == RESET)
+    {
+      key_num++;
+      if(key_num >10 && key_num<20) 
+      {
+        key_status = 1;
+      }
+      else if(key_num >20) 
+      {
+        key_status = 2;
+      }       
+    }
+    else
+    {
+      if(key_num >1 && key_num<10)
+      {
+        key_status = 0;
+      }
+      key_num = 0;    
+      
     }
   }
   
@@ -112,6 +142,7 @@ __interrupt void TIM1_UPD_OVF_TRG_BRK_IRQHandler(void)
   if(time_ms++ >=1000)
   {
     time_ms = 0;
+    led_flag_s = 1;
     time_sec++;   
     if(zz_time>0)
     {

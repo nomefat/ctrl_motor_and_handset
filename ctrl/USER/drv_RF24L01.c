@@ -676,6 +676,8 @@ u8 rx_buff[12];
 u8 tx_buff[12];
 extern u32 time_sec;
 u8 a = 0;
+extern u8 key_status ;
+
 void rf_rx()
 {
   static u32 time_sec_rf = 0;
@@ -772,6 +774,7 @@ void rf_tx(u8 cmd,u8 data1,u8 data2,u8 data3,u8 data4)
   ptr_rx->cmd = cmd;
 
   ptr_rx->id = system_param.id;
+  ptr_rx->code = system_param.area_code;
   ptr_rx->crc = 0;  
   
   RF24L01_Set_Mode( MODE_TX );  
@@ -803,14 +806,24 @@ void rf_rx_data_handle()
 {
   struct_rf_cmd *ptr_rx = (struct_rf_cmd *)rx_buff;
   u16 day;
+  u16 id,code;
   
   if(ptr_rx->head != 0x55aa)
     return;
   
-  if((rx_buff[2] != ((ptr_rx->id>>8)&0xff) || rx_buff[3] != (ptr_rx->id&0xff) )&& (rx_buff[3]*256+rx_buff[2]) !=9998)
-    return;
+  id = rx_buff[2] + rx_buff[3]*256;
+  code = rx_buff[4] + rx_buff[5]*256;
   
+  if(id == 9998)
+    goto work;
+  if(id == system_param.id && system_param.area_code == code)
+    goto work;
+  if(key_status>0 && (ptr_rx->cmd == CMD_HAND_SET_DEV_CODE || ptr_rx->cmd ==CMD_HAND_SET_DEV_ID))
+    goto work;
+ 
+  return;
   
+work:
   
   switch(ptr_rx->cmd)
   {
@@ -873,12 +886,12 @@ void rf_rx_data_handle()
 	  rf_tx(CMD_DEV_FZ_SEC,system_param.reverse_time,0,0,0);      
       break; //遥控获取设备反转时间	
     case CMD_HAND_SET_DEV_ID       :    
-	
+          system_param.id = ptr_rx->data[0] + ptr_rx->data[1]*256;	
           rf_tx(CMD_DEV_NEW_ID,ptr_rx->data[0] ,ptr_rx->data[1],0,0); 
-	  system_param.id = ptr_rx->data[0] + ptr_rx->data[1]*10;
+	  
       break; //遥控设置设备ID
     case CMD_HAND_SET_DEV_CODE     :     
-	  system_param.area_code = ptr_rx->data[0] + ptr_rx->data[1]*10;  
+	  system_param.area_code = ptr_rx->data[0] + ptr_rx->data[1]*256;  
 	  rf_tx(CMD_DEV_NEW_CODE,ptr_rx->data[0],ptr_rx->data[1],0,0); 
       break; //遥控设置设备区域编码
     case CMD_HAND_SET_DEV_CURRENT_L :    

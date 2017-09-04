@@ -9,7 +9,7 @@ typedef enum _main_stat
 	rf_error,
 	power_on,
 	password_ok,
-	control,
+	control_,
 	set_current,
 	set_encoding,
 	
@@ -29,9 +29,9 @@ typedef enum _control_stat
 
 extern enmu_main_stat main_stat ;
 extern signed char smg_value[4];
-extern unsigned char smg_cur ;
-extern unsigned char smg_cur_begin ;
-extern unsigned char smg_cur_end ;
+extern signed char smg_cur ;
+extern signed char smg_cur_begin ;
+extern signed char smg_cur_end ;
 
 
 

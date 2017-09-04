@@ -17,8 +17,8 @@ extern enmu_control_stat set_id_stat;
 extern int8_t zhengzhuan_sec ;
 extern int8_t fangzhuan_sec ;
 extern int32_t left_day ;
-extern uint32_t current_value;
-
+extern int8_t current_value;
+extern uint32_t hand_code ;
 
 struct_rf_cmd rf_cmd;
 
@@ -43,6 +43,7 @@ void rf_send_cmd(unsigned short id,unsigned char cmd,unsigned int data)
 	p = (uint32_t *)rf_cmd.data;
 	rf_cmd.head = 0xaa55;
 	rf_cmd.cmd = cmd;
+	rf_cmd.code = hand_code;
 	*p = data;
 	rf_cmd.id = id;
 	rf_cmd.crc = 0;
@@ -57,23 +58,28 @@ void rf_data_handle(void)
 {
 
 	uint16_t id = 0;
+	uint16_t code = 0;
+	
 	struct_rf_cmd* ptr = (struct_rf_cmd* )rxbuf;	
 	id = dev_id>>8;
 	id += dev_id<<8;
+	
+	code = ptr->code >> 8;
+	code += ptr->code << 8;
 	
 	beep();
 	
 	if(ptr->head !=0x55aa)
 		return;
 	
-	if(ptr->id != id)
+	if((ptr->id != id || hand_code != code) && ptr->cmd != CMD_DEV_NEW_CODE)
 		return;
 	
 	
 	switch(ptr->cmd)
 	{
 		case  CMD_DEV_STAT :  
-			if(main_stat == control)		//控制状态	
+			if(main_stat == control_)		//控制状态	
 			{
 				if(control_stat == find_dev) //正在找设备
 				{
@@ -112,28 +118,56 @@ void rf_data_handle(void)
 			
     case CMD_DEV_ZZ_SEC  :         
 				zhengzhuan_sec = ptr->data[0];
+				sed_smg(1,0XBF);
 				sed_smg_number(2,ptr->data[0]/10);	
 				sed_smg_number(3,ptr->data[0]%10);			
 				break;     //  51   //设备返回正转时间
 		
 		case CMD_DEV_FZ_SEC   :         
 				fangzhuan_sec = ptr->data[0];
+				sed_smg(1,0XBF);
 				sed_smg_number(2,ptr->data[0]/10);	
 				sed_smg_number(3,ptr->data[0]%10);	
 				break;          //   52   //设备返回反转时间	
 			
 		case CMD_DEV_NEW_ID   :        
-			
+			if(main_stat == set_encoding)
+			{
+				id = ptr->data[0] + ptr->data[1]*256;
+				sed_smg_number(0,id/1000);	
+				sed_smg_number(1,id%1000/100);	
+				sed_smg_number(2,id%100/10);	
+				sed_smg_number(3,id%10);	
+				smg_value[0] = id/1000;
+				smg_value[1] = id%1000/100;
+				smg_value[2] = id%100/10;
+				smg_value[3] = id%10;					
+			}			
 		break;      // 53   //设备返回新ID，然后会切换ID
 		
 		case CMD_DEV_NEW_CODE  :       
-
+			if(main_stat == set_encoding)
+			{
+				id = ptr->data[0] + ptr->data[1]*256;
+				sed_smg_number(0,id/1000);	
+				sed_smg_number(1,id%1000/100);	
+				sed_smg_number(2,id%100/10);	
+				sed_smg_number(3,id%10);		
+				smg_value[0] = id/1000;
+				smg_value[1] = id%1000/100;
+				smg_value[2] = id%100/10;
+				smg_value[3] = id%10;				
+			}
 		break;     // 54   //设备返回新CODE 然后会切换CODE
 		
 		case CMD_DEV_CURRENT_L :      
 				if(set_current_stat==find_dev)
+				{
 					set_current_stat = find_ok_dev;
-				current_value = fangzhuan_sec = ptr->data[0];		
+					smg_cur= 3;
+					smg_cur_begin = 3;
+				}
+				current_value = ptr->data[0];		
 				sed_smg_number(3,ptr->data[0]);				
 				break;   // 55   //设备返回电流等级
 		
@@ -142,7 +176,8 @@ void rf_data_handle(void)
 				left_day += ptr->data[1]*256;
 				sed_smg_number(1,left_day/100);	
 				sed_smg_number(2,left_day%100/10);	
-				sed_smg_number(3,left_day%10);		
+				sed_smg_number(3,left_day%10);	
+		
 				break;    // 56	 //返回锁定时间
 		
 		default : break;

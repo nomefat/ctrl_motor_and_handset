@@ -66,7 +66,8 @@ unsigned char btn_to_num[] = {0,0,0,7,4,1,F_STAR,0,0,0,8,5,2,0,0,0,0,9,6,3,F_JIN
 
 int power_stat = 0;
 extern uint32_t password;
-
+extern uint32_t hand_code;
+	
 extern TIM_HandleTypeDef htim1;
 
 extern void rf_send(void *pdata,uint8_t len);
@@ -364,6 +365,7 @@ void btn_handle(void)
 			beep();
 			main_stat = set_encoding;
 			set_id_stat = find_dev;
+			find_dev_begin = 0;
 			led(LED1,0);
 			led(LED2,0);
 			led(LED3,1);
@@ -382,8 +384,9 @@ void btn_handle(void)
 		if(main_stat == password_ok) 
 		{
 			beep();
-			main_stat = control;
+			main_stat = control_;
 			control_stat = find_dev;
+			find_dev_begin = 0;
 			led(LED1,1);
 			led(LED2,0);
 			led(LED3,0);	
@@ -404,6 +407,7 @@ void btn_handle(void)
 			beep();
 			main_stat = set_current;
 			set_current_stat = find_dev;
+			find_dev_begin = 0;
 			led(LED1,0);
 			led(LED2,1);
 			led(LED3,0);
@@ -420,7 +424,7 @@ void btn_handle(void)
 	else if(i==F_UP)   //上
 	{
 		beep();
-		if(control_stat==find_ok_dev && main_stat == control)  //控制状态下，已经找到设备
+		if(control_stat==find_ok_dev && main_stat == control_)  //控制状态下，已经找到设备
 		{
 			rf_send_cmd(dev_id,CMD_HAND_ZZ,0);    //发送正转指令
 		}		
@@ -428,7 +432,7 @@ void btn_handle(void)
 	else if(i==F_DOWN)   //下
 	{
 		beep();
-		if(control_stat==find_ok_dev && main_stat == control)  //控制状态下，已经找到设备
+		if(control_stat==find_ok_dev && main_stat == control_)  //控制状态下，已经找到设备
 		{
 			rf_send_cmd(dev_id,CMD_HAND_FZ,0);    //发送反转指令
 		}			
@@ -440,7 +444,7 @@ void btn_handle(void)
 	else if(i==F_BACK)   //退格按钮
 	{
 		beep();
-		if(control_stat==find_ok_dev && main_stat == control)  //控制状态下，已经找到设备
+		if(control_stat==find_ok_dev && main_stat == control_)  //控制状态下，已经找到设备
 		{
 			control_stat = set_zhengzhuan_sec;
 			rf_get_sec_flag = time_sec;
@@ -452,7 +456,7 @@ void btn_handle(void)
 			sed_smg(2,0XBF);	
 			sed_smg(3,0XBF);				
 		}					
-		else if(control_stat==set_zhengzhuan_sec && main_stat == control)  //控制状态下,获取反转时间
+		else if(control_stat==set_zhengzhuan_sec && main_stat == control_)  //控制状态下,获取反转时间
 		{
 			control_stat = set_fangzhuan_sec;
 			rf_get_sec_flag = time_sec;
@@ -464,7 +468,7 @@ void btn_handle(void)
 			sed_smg(2,0XBF);	
 			sed_smg(3,0XBF);				
 		}				
-		else if(control_stat==set_fangzhuan_sec && main_stat == control)  //控制状态下，获取正转时间  
+		else if(control_stat==set_fangzhuan_sec && main_stat == control_)  //控制状态下，获取正转时间  
 		{
 			control_stat = set_left_day;
 			rf_get_sec_flag = time_sec;
@@ -477,7 +481,7 @@ void btn_handle(void)
 			sed_smg(3,0XBF);	
 			
 		}		
-		else if(control_stat==set_left_day && main_stat == control)  //控制状态下，获取正转时间  
+		else if(control_stat==set_left_day && main_stat == control_)  //控制状态下，获取正转时间  
 		{
 			control_stat = set_zhengzhuan_sec;
 			rf_get_sec_flag = time_sec;
@@ -489,16 +493,24 @@ void btn_handle(void)
 			sed_smg(2,0XBF);	
 			sed_smg(3,0XBF);	
 			
-		}				
+		}
+		else
+		{
+			smg_cur--;
+			if(smg_cur<smg_cur_begin)
+				smg_cur = smg_cur_end-1;
+			smg_value[smg_cur] = -1;
+			sed_smg(smg_cur,0XFF);
+		}
 	}
 	else if(i==F_EXIT)    //退出按钮
 	{
 		beep();
-		if((control_stat==set_fangzhuan_sec ||control_stat==set_zhengzhuan_sec) && main_stat == control)	//退出到控制状态 找到设备状态
+		if((control_stat==set_fangzhuan_sec ||control_stat==set_zhengzhuan_sec || control_stat==set_left_day) && main_stat == control_)	//退出到控制状态 找到设备状态
 		{
 			control_stat = find_ok_dev;
 		}			
-		else if(main_stat == control && control_stat!=set_zhengzhuan_sec && control_stat!=set_fangzhuan_sec)  //退出到待机状态
+		else if(main_stat == control_ && control_stat!=set_zhengzhuan_sec && control_stat!=set_fangzhuan_sec && control_stat!=set_left_day)  //退出到待机状态
 		{
 			main_stat = password_ok;
 			control_stat = find_dev;
@@ -553,6 +565,8 @@ void btn_handle(void)
 
 void btn_0_9_callback(int i)
 {
+	
+
 	beep();
 	
 	if(smg_cur>=smg_cur_end)
@@ -571,7 +585,7 @@ void btn_0_9_callback(int i)
 	
 	display_code[smg_cur] &= 0x7f;
 
-	if(control_stat==find_none_dev && main_stat == control)
+	if(control_stat==find_none_dev && main_stat == control_)
 	{
 		control_stat = find_dev;
 	}
@@ -582,8 +596,10 @@ void btn_0_9_callback(int i)
 //确认按钮
 void btn_enter()
 {
+	uint16_t input_value = 0;
+	
 	beep();
-	rf_send(data,4);
+
 	if(main_stat == power_on)   //开机状告下按下确认键 进行密码校验
 	{
 		if(smg_value[0] == (password/1000) && smg_value[1] == (password%1000/100) && smg_value[2] == (password%100/10) && smg_value[3] == (password%10))
@@ -593,10 +609,10 @@ void btn_enter()
 			smg_value[1] = -1;
 			smg_value[2] = -1;
 			smg_value[3] = -1;		
-			sed_smg(0,0xff);
-			sed_smg(1,0xff);			
-			sed_smg(2,0xff);
-			sed_smg(3,0xff);				
+			sed_smg_number(0,hand_code/1000);
+			sed_smg_number(1,hand_code%1000/100);			
+			sed_smg_number(2,hand_code%100/10);			
+			sed_smg_number(3,hand_code%10);						
 		}
 		else if(btn_event[6].up == 1 && smg_value[0] == 6 && smg_value[1] == 6 && smg_value[2] == 6 && smg_value[3] == 6)  //超级密码  * 6 6 6 6
 		{
@@ -607,10 +623,10 @@ void btn_enter()
 			smg_value[1] = -1;
 			smg_value[2] = -1;
 			smg_value[3] = -1;		
-			sed_smg(0,0xff);
-			sed_smg(1,0xff);			
-			sed_smg(2,0xff);
-			sed_smg(3,0xff);				
+			sed_smg_number(0,hand_code/1000);
+			sed_smg_number(1,hand_code%1000/100);			
+			sed_smg_number(2,hand_code%100/10);			
+			sed_smg_number(3,hand_code%10);			
 		}			
 		else
 		{
@@ -627,16 +643,28 @@ void btn_enter()
 			password = smg_value[0]*1000+smg_value[1]*100+smg_value[2]*10+smg_value[3];
 			btn_event[6].up = 0;
 			btn_event[6].down = 0;
-			write_password(password);
+			write_password(password | hand_code<<16);
 			smg_value[0] = -1;
 			smg_value[1] = -1;
 			smg_value[2] = -1;
 			smg_value[3] = -1;		
 			main_stat = power_on;
 		}
+		else if(smg_value[0] !=-1 && smg_value[1] !=-1 && smg_value[2] !=-1 && smg_value[3] !=-1 )
+		{
+			hand_code = smg_value[0]*1000+smg_value[1]*100+smg_value[2]*10+smg_value[3];
+			btn_event[6].up = 0;
+			btn_event[6].down = 0;
+			write_password(password | hand_code<<16);
+			smg_value[0] = -1;
+			smg_value[1] = -1;
+			smg_value[2] = -1;
+			smg_value[3] = -1;		
+			main_stat = power_on;			
+		}
 	}
 
-	else if(main_stat == control)   //控制状态
+	else if(main_stat == control_)   //控制状态
 	{
 		if(control_stat==find_dev) 
 		{
@@ -715,7 +743,8 @@ void btn_enter()
 			 current_value = -1;
 			 sed_smg(3,0xbf);			 
 			 led(LED1,1);
-			 rf_send_cmd(dev_id,CMD_HAND_SET_DEV_CURRENT_L,smg_value[3]); 
+			 
+			 rf_send_cmd(dev_id,CMD_HAND_SET_DEV_CURRENT_L,smg_value[3]>5?5:smg_value[3]); 
 			 led(LED1,0);
 		 }
 		 
@@ -724,36 +753,70 @@ void btn_enter()
 	
 	else if(main_stat == set_encoding) //
 	{
-		if(set_id_stat==find_dev) 
+//		if(set_id_stat==find_dev) 
+//		{
+//			dev_id = smg_value[0]*1000+smg_value[1]*100+smg_value[2]*10+smg_value[3];
+//			find_dev_begin = time_sec;
+//			sed_smg_number(0,0);
+//			sed_smg_number(1,0);			
+//			sed_smg_number(2,0);			
+//			sed_smg_number(3,0);						
+//		}		
+//		else if (set_id_stat==find_none_dev)
+//		{
+//			dev_id = smg_value[0]*1000+smg_value[1]*100+smg_value[2]*10+smg_value[3];
+//			find_dev_begin = time_sec;	
+//			set_id_stat = find_dev	;		
+//			sed_smg_number(0,0);
+//			sed_smg_number(1,0);			
+//			sed_smg_number(2,0);			
+//			sed_smg_number(3,0);			
+//		}				
+//		else if(set_id_stat==find_ok_dev)
+//		{
+//				sed_smg(0,0xff);
+//				sed_smg(1,0xff);			
+//				sed_smg(2,0xff);			
+//				sed_smg(3,0xff);	
+//				set_id_stat=find_dev;
+//				dev_id = smg_value[0]*1000+smg_value[1]*100+smg_value[2]*10+smg_value[3];
+//				rf_send_cmd(dev_id,CMD_HAND_SET_DEV_ID,dev_id); 
+//				find_dev_begin = time_sec;			
+//		}
+		if(btn_event[6].up == 1 && smg_value[0] !=-1 && smg_value[1] !=-1 && smg_value[2] !=-1 && smg_value[3] !=-1 )		 //待机状态按下*+确认按键后 设置ID
 		{
-			dev_id = smg_value[0]*1000+smg_value[1]*100+smg_value[2]*10+smg_value[3];
-			find_dev_begin = time_sec;
-			sed_smg_number(0,0);
-			sed_smg_number(1,0);			
-			sed_smg_number(2,0);			
-			sed_smg_number(3,0);						
-		}		
-		else if (set_id_stat==find_none_dev)
-		{
-			dev_id = smg_value[0]*1000+smg_value[1]*100+smg_value[2]*10+smg_value[3];
-			find_dev_begin = time_sec;	
-			set_id_stat = find_dev	;		
-			sed_smg_number(0,0);
-			sed_smg_number(1,0);			
-			sed_smg_number(2,0);			
-			sed_smg_number(3,0);			
-		}				
-		else if(set_id_stat==find_ok_dev)
-		{
-				sed_smg(0,0xff);
-				sed_smg(1,0xff);			
-				sed_smg(2,0xff);			
-				sed_smg(3,0xff);	
-				set_id_stat=find_dev;
-				dev_id = smg_value[0]*1000+smg_value[1]*100+smg_value[2]*10+smg_value[3];
-				rf_send_cmd(dev_id,CMD_HAND_SET_DEV_ID,dev_id); 
-				find_dev_begin = time_sec;			
+			input_value = smg_value[0]*1000+smg_value[1]*100+smg_value[2]*10+smg_value[3];
+			btn_event[6].up = 0;
+			btn_event[6].down = 0;
+			rf_send_cmd(0,CMD_HAND_SET_DEV_ID,input_value);
+			dev_id = input_value;
+			smg_value[0] = -1;
+			smg_value[1] = -1;
+			smg_value[2] = -1;
+			smg_value[3] = -1;		
+			sed_smg(0,0xbf);
+			sed_smg(1,0xbf);
+			sed_smg(2,0xbf);
+			sed_smg(3,0xbf);	
 		}
+		else if(btn_event[20].up == 1 && smg_value[0] !=-1 && smg_value[1] !=-1 && smg_value[2] !=-1 && smg_value[3] !=-1 )		 //待机状态按下#+确认按键后 设置CODE
+		{
+			input_value = smg_value[0]*1000+smg_value[1]*100+smg_value[2]*10+smg_value[3];
+			btn_event[20].up = 0;
+			btn_event[20].down = 0;
+			rf_send_cmd(0,CMD_HAND_SET_DEV_CODE,input_value);
+			
+			smg_value[0] = -1;
+			smg_value[1] = -1;
+			smg_value[2] = -1;
+			smg_value[3] = -1;	
+			sed_smg(0,0xbf);
+			sed_smg(1,0xbf);
+			sed_smg(2,0xbf);
+			sed_smg(3,0xbf);				
+
+		}
+
 	}		
 
 }

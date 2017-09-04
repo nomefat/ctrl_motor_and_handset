@@ -43,6 +43,13 @@ u16 Conversion_Value;
 
 extern u16 adc_1250mv;
 
+extern u8 key_status ;
+
+extern u8 led_flag_ms ;
+
+extern u8 led_flag_s ;
+
+
 u8 do_motor_stop_once = 0;
 
 struct__system_param system_param;     //系统参数
@@ -103,6 +110,19 @@ int main(void)
        motor_stop();
      }
      
+    if(key_status == 1 && led_flag_ms == 1)
+    {
+     led_flag_ms = 0;
+     GPIO_WriteReverse(GPIOD,GPIO_PIN_5);
+    }
+    else if(key_status == 2 && led_flag_s == 1)
+    {
+     led_flag_s = 0;
+     GPIO_WriteReverse(GPIOD,GPIO_PIN_5);    
+    }
+   
+   
+   
    }
 
   

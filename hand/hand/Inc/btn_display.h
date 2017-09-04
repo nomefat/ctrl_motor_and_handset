@@ -43,7 +43,7 @@
 #define _E   ~(Sega + Segb + Segc + Segd + Segg )
 
 
-#define F_STAR 10
+#define F_STAR 6
 #define F_JIN  11
 
 #define F_MAKE_CODE  2
